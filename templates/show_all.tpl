@@ -50,7 +50,9 @@
                     <tr>
                         <td>{$smarty.foreach.foo.iteration}</td>
                         <td>
-                            <a href="#" role="button" class="summoner-name" data-summoneraid="{$Summoner->AID}">{$Summoner->Name|utf8_encode}</a>
+                            {$Summoner->Name|utf8_encode}
+                            {if $Summoner->HotStreak} <i class="icon-fire"></i>{/if}
+                            {if $Summoner->Veteran} <i class="icon-calendar"></i>{/if}
                         </td>
                         <td>{$Summoner->Region|strtoupper}</td>
                         <td>{$Summoner->get_estimated_elo()}</td>
@@ -74,8 +76,10 @@
 </div>
 <div class="row-fluid">
     <div class="title span{if $More}12{else}8{/if} clearfix">
+    
         <small>
-            {nocache}<a href="#" title="{$UpdateLog|default:""}" class="pull-right my-tooltip">Viimane uuendus {relative_time($Update)}</a>{/nocache}
+            {nocache}<a href="#" title="{$UpdateLog|default:""}" class="pull-left my-tooltip">Viimane uuendus {relative_time($Update)}</a>{/nocache}
+            {nocache}<span class="pull-right">v{constant("VERSION")}</span>{/nocache}
         </small>
     </div>
 </div>

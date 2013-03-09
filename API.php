@@ -1,6 +1,7 @@
 <?php
 
 define("CLI", PHP_SAPI === 'cli');
+define("VERSION", "203609032013");
 
 if (PHP_SAPI === 'cli')
 {
@@ -22,16 +23,16 @@ try
     {
         $_GET["action"] = "RunCrons";
     }
-	$_GET["action"] = isset($_GET["action"]) ? $_GET["action"] : "render";
-	
-	$API = new TheApi();
-	
+    $_GET["action"] = isset($_GET["action"]) ? $_GET["action"] : "render";
+    
+    $API = new TheApi();
+    
     $Init = new BootStrap();
-	
-	$Init->Strap();
-	
-	$API->SetBootstrap($Init);
-	$API->Strap($Init);
+    
+    $Init->Strap();
+    
+    $API->SetBootstrap($Init);
+    $API->Strap($Init);
 }
 
 catch(Exception $e)
