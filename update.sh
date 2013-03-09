@@ -35,5 +35,5 @@ php -f C:\Dropbox\Serverid\www\LOL\API.php 220 10 > C:\Dropbox\Serverid\www\scri
 php -f C:\Dropbox\Serverid\www\LOL\API.php 230 10 > C:\Dropbox\Serverid\www\script\output24.log &
 php -f C:\Dropbox\Serverid\www\LOL\API.php 240 10 > C:\Dropbox\Serverid\www\script\output25.log &
 php -f C:\Dropbox\Serverid\www\LOL\API.php 250 10 > C:\Dropbox\Serverid\www\script\output26.log &
-php -f C:\Dropbox\Serverid\www\LOL\API.php 260 10 > C:\Dropbox\Serverid\www\script\output27.log & 
+php -f C:\Dropbox\Serverid\www\LOL\API.php 260 10 > C:\Dropbox\Serverid\www\script\output27.log &
 php -f C:\Dropbox\Serverid\www\LOL\API.php 270 10 > C:\Dropbox\Serverid\www\script\output28.log &
