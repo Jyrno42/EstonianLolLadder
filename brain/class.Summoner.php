@@ -144,7 +144,7 @@ class Summoner extends Models
                 $this->safeFieldUpdate($changed, "Score", floor($this->get_estimated_elo()), 0);
             }
         }
-        $Summoner->Modified = time();
+        $this->Modified = time();
         return $changed;
     }
     
