@@ -13,6 +13,10 @@ if (PHP_SAPI === 'cli')
     chdir($dir);
     print "Changing working directory to $dir\n";
 }
+else
+{
+    header('Content-type: text/html; charset=utf-8');
+}
 
 require_once("config/config.php");
 
