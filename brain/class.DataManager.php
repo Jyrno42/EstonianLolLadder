@@ -27,7 +27,7 @@ class DataManager
             {
                 $this->ThrowError(new Exception("MYSQLI: Failed to connect(" . mysqli_connect_errno() . "). " . mysqli_connect_error()));
             }
-            $mysqli->set_charset('utf8');
+            $this->connection->set_charset('utf8');
         }
         else
         {
