@@ -69,6 +69,7 @@ class TheApi extends API
         $this->AddAction("Login", array($this, "ShowLogin"));
         $this->AddAction("Login2", array($this, "Login"));
         $this->AddAction("Manage", array($this, "Manage"));
+        $this->AddAction("GenerateUpdator", array($this, "GenerateUpdator"));
         
         $this->AddAction("AddSummoner", array($this, "AddSummoner"));
         $this->AddAction("test", array($this, "test"));
@@ -92,6 +93,36 @@ class TheApi extends API
             throw new NotAuthorizedException();
         
         $this->Init->Smarty->display("manage.tpl");
+    }
+    
+    public function GenerateUpdator()
+    {
+        if(!$this->Init->UserManager->Can("unused_13"))
+            throw new NotAuthorizedException();
+        
+        $Workers = array();
+        
+        $Summoners = Summoner::objects($this->Init->Datamanager)->all()->orderby(array("AID"))->reverse()->get();
+        
+        $chunk = 10;
+        for($i = 0; $i < sizeof($Summoners) + $chunk; $i += $chunk)
+        {
+            $o = new stdClass;
+            $o->start = $i;
+            $o->amount = $chunk;
+            $Workers[] = $o;
+        }
+        
+        $this->Init->Smarty->assign("DIR", getcwd() . DIRECTORY_SEPARATOR);
+        $this->Init->Smarty->assign("LOGDIR", dirname(getcwd()) . DIRECTORY_SEPARATOR . "script" . DIRECTORY_SEPARATOR);
+        $this->Init->Smarty->assign("DATE", date("c"));
+        $this->Init->Smarty->assign("Workers", $Workers);
+        
+        $content = $this->Init->Smarty->fetch("update.tpl");
+        
+        file_put_contents(getcwd() . DIRECTORY_SEPARATOR . "update.sh", $content);
+        
+        print "<pre>$content</pre>";
     }
     
     private function TryAddSummoner($theSummoner, $region, $name)
