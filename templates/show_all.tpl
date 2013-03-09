@@ -50,7 +50,7 @@
                     <tr>
                         <td>{$smarty.foreach.foo.iteration}</td>
                         <td>
-                            {$Summoner->Name}
+                            {$Summoner->Name|utf8_encode}
                             {if $Summoner->HotStreak} <i class="icon-fire"></i>{/if}
                             {if $Summoner->Veteran} <i class="icon-calendar"></i>{/if}
                         </td>
