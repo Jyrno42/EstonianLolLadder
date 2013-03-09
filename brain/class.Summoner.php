@@ -31,6 +31,8 @@ class Summoner extends Models
     
     public $Score;
     
+    public $Modified;
+    
     private static $Fields = null;
     public static function ModelFields()
     {
@@ -66,6 +68,8 @@ class Summoner extends Models
             self::$Fields->Veteran = new BooleanField("Veteran");
             
             self::$Fields->Score = new IntField("Score", 11);
+            
+            self::$Fields->Modified = new IntField("Modified", 11);
         }
         return self::$Fields;
     }
@@ -140,6 +144,7 @@ class Summoner extends Models
                 $this->safeFieldUpdate($changed, "Score", floor($this->get_estimated_elo()), 0);
             }
         }
+        $Summoner->Modified = time();
         return $changed;
     }
     
@@ -177,10 +182,11 @@ class Summoner extends Models
             3 => array(1500, 1840), // 1500 - 1840: Gold
             4 => array(1850, 2240), // 1850 - 2240: Plat
             5 => array(2250, 2540), // 2250 - 2540: Diamond
-            6 => array(2550, 3500), // 2550++: Challenger
+            6 => array(2550, 3000), // 2550++: Challenger
         );
         
         $tier = isset($ranges[$this->Tier]) ? $ranges[$this->Tier] : array(0, 800);
+                
         $range = $tier[1] - $tier[0];
         $div = $range / 5;
         
