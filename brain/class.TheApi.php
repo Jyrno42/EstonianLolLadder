@@ -181,13 +181,12 @@ class TheApi extends API
         $Summoners = array();
         $filter = ApiHelper::GetParam("filter", false, null, false);
         $showtop = ApiHelper::GetParam("showtop", false, null, false);
-        $more = ApiHelper::GetParam("more", false, null, false);
         
         $tplName = $showtop ? "show_5.tpl" : "show_all.tpl";
         
         $filter = array_search($filter, self::$filters) !== FALSE ? $filter : null;
         
-        if(true || ApiHelper::GetParam("inval", false))
+        if(ApiHelper::GetParam("inval", false))
         {
             $this->ClearCache();
         }
@@ -197,7 +196,7 @@ class TheApi extends API
             $this->Init->Smarty->setCompileCheck(false);
         }
         
-        $key = sprintf("ren_%s_%s_%s", $filter, $showtop ? self::$showtop[0] : self::$showtop[1], $more == true ? "y" : "n");
+        $key = sprintf("ren_%s_%s", $filter, $showtop ? self::$showtop[0] : self::$showtop[1]);
         if(!$this->Init->Smarty->isCached($tplName, $key))
         {
             if($filter !== null)
@@ -215,7 +214,6 @@ class TheApi extends API
             $this->Init->Smarty->assign("Label", $filter ? strtoupper($filter) : "EESTI");
             $this->Init->Smarty->assign("Summoners", $Summoners);
             $this->Init->Smarty->assign("Filter", $filter);
-            $this->Init->Smarty->assign("More", $more == true);
             $upd = $this->Init->Cache->Get("updated");
             $updatelog = $this->Init->Cache->Get("updatelog");
             $this->Init->Smarty->assign("Update", $upd);

@@ -4,44 +4,36 @@
 {strip}
 <div class="container-fluid">
 <div class="row-fluid">
-    <div class="title span{if $More}12{else}8{/if}">
+    <div class="title span12">
         <div class="pull-left dropdown">
             <button class="btn dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></button>
             <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
-                <li><a tabindex="-1" href="API.php?action=render&filter=euw&more={$More}">EUW</a></li>
-                <li><a tabindex="-1" href="API.php?action=render&filter=eune&more={$More}">EUNE</a></li>
-                <li><a tabindex="-1" href="API.php?action=render&more={$More}">All</a></li>
+                <li><a tabindex="-1" href="API.php?action=render&filter=euw">EUW</a></li>
+                <li><a tabindex="-1" href="API.php?action=render&filter=eune">EUNE</a></li>
+                <li><a tabindex="-1" href="API.php?action=render">All</a></li>
                 <li class="divider"></li>
                 <li><a tabindex="-1" href="API.php?action=render&showtop=1">Top 5</a></li>
             </ul>
         </div>
         {$Label} TOP
-        <div class="pull-right dropdown">
-            <button class="btn dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></button>
-            <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
-                <li><a tabindex="-1" href="API.php?action=render&filter={$Filter}&more={!$More}">Show {if $More}Less{else}More{/if}</a></li>
-            </ul>
-        </div>
     </div>
 </div>
 <div class="row-fluid">
-    <div class="span{if $More}12{else}8{/if}">
+    <div class="span12">
         <table class="table tablesorter" id="myTable" style="margin-bottom: 0px;">
             <thead>
                 <tr>
                     <th class="span1">#</th>
-                    <th class="span{if $More}1{else}3{/if}">Nimi</th>
+                    <th class="span2">Nimi</th>
                     <th class="span1">Server</th>
                     <th class="span1">Skoor</th>
                     <th class="span1">Liiga</th>
                     <th class="span1">Võidud</th>
-                    <th class="span{if $More}2{else}4{/if}">Lost</th>
-                    {if $More}
-                        <th class="span1">KDA</th>
-                        <th class="span1">KillRecord</th>
-                        <th class="span1">Quadra's</th>
-                        <th class="span1">Penta's</th>
-                    {/if}
+                    <th class="span1">Lost</th>
+                    <th class="span1">KDA</th>
+                    <th class="span1">KillRecord</th>
+                    <th class="span1">Quadra's</th>
+                    <th class="span1">Penta's</th>
                 </tr>
             </thead>
             <tbody>
@@ -59,14 +51,12 @@
                         <td data-rval="{$Summoner->get_estimated_elo()}">{$Summoner->TierName()} {$Summoner->RankName()} {$Summoner->LeaguePoints} LP {if $Summoner->League}<br>{$Summoner->League}{/if}</td>
                         <td>{$Summoner->WON}</td>
                         <td>{$Summoner->LOST}</td>
-                        {if $More}
-                            <td>
-                                {(($Summoner->Kills+$Summoner->Assists)/($Summoner->Deaths))|string_format:"%.2f"|default:"0"}
-                            </td>
-                            <td>{$Summoner->MaxChampionKills}</td>
-                            <td>{$Summoner->QuadraKills}</td>
-                            <td>{$Summoner->PentaKills}</td>
-                        {/if}
+                        <td>
+                            {(($Summoner->Kills+$Summoner->Assists)/($Summoner->Deaths))|string_format:"%.2f"|default:"0"}
+                        </td>
+                        <td>{$Summoner->MaxChampionKills}</td>
+                        <td>{$Summoner->QuadraKills}</td>
+                        <td>{$Summoner->PentaKills}</td>
                     </tr>
                     {/if}
                 {/foreach}
@@ -75,7 +65,7 @@
     </div>
 </div>
 <div class="row-fluid">
-    <div class="title span{if $More}12{else}8{/if} clearfix">
+    <div class="title span12 clearfix">
     
         <small>
             {nocache}<a href="#" title="{$UpdateLog|default:""}" class="pull-left my-tooltip">Viimane uuendus {relative_time($Update)}</a>{/nocache}
