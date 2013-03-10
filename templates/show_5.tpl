@@ -2,7 +2,7 @@
 
 {block name="content"}
 
-    <table class="table" style="width: 246px; margin-bottom: 0px;">
+    <table class="table" style="width: 240px; margin-bottom: 0px;">
         <thead>
             <tr>
                 <th colspan="7" class="title">
