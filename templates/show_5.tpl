@@ -32,7 +32,7 @@
                 <tr>
                     <td>{$smarty.foreach.foo.iteration}</td>
                     <td>
-                        {$Summoner->Name|utf8_encode}
+                        {$Summoner->Name}
                     </td>
                     <td>{$Summoner->Region|strtoupper}</td>
                     <td>{$Summoner->Score}</td>
