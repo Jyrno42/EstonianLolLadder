@@ -18,6 +18,10 @@
 
         
         <style type="text/css">
+            body {
+                padding: 0;
+                margin: 0;
+            }
             .title {
                 font-size: 16px;
                 font-weight: bold;
