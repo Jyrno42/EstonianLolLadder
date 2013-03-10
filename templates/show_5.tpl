@@ -6,7 +6,7 @@
         <thead>
             <tr>
                 <th colspan="7" class="title">
-                    {$Label} TOP 5
+                    <a href="http://lol.th3f0x.com/API.php">{$Label} TOP 5</a>
                     <div class="pull-left dropdown">
                         <button class="btn dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></button>
                         <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
