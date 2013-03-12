@@ -1,17 +1,12 @@
 <?php
 
 define("CLI", PHP_SAPI === 'cli');
-define("VERSION", "231512032013");
+define("VERSION", "1.0.0");
 
 if (PHP_SAPI === 'cli')
 {
-    //print "\n\n###############################################################################\n";
-    //print "#####            LoL Estonian Database Command Line interface             #####\n";
-    //print "###############################################################################\n\n";
-    
     $dir = dirname(__FILE__);
     chdir($dir);
-    //print "Changing working directory to $dir\n";
 }
 else
 {
@@ -33,7 +28,7 @@ try
 
     if (PHP_SAPI === 'cli')
     {
-        $updator = new UpdateManager($Init->Datamanager, $Init->Cache, $argv);
+        $updator = new UpdateManager($Init->Datamanager, $Init->Cache, $Init->Smarty, $argv);
         exit;
     }
 
