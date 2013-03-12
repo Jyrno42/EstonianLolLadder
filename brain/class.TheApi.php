@@ -165,7 +165,7 @@ class TheApi extends API
             $this->Init->Smarty->setCompileCheck(false);
         }
         
-        $key = sprintf("ren_%s_%s", $filter, $showtop ? self::$showtop[0] : self::$showtop[1]);
+        $key = sprintf("%s_ren_%s_%s", VERSION, $filter, $showtop ? self::$showtop[0] : self::$showtop[1]);
         if(!$this->Init->Smarty->isCached($tplName, $key))
         {
             if($filter !== null)
