@@ -605,6 +605,7 @@ class UpdateManager
                 $this->loginfo(sprintf("Problem opening file %s.", self::FILE_NAME));
             }
             sleep(1);
+            file_put_contents(self::STATE_FILE, "0");
         }
         else if($work)
         {
