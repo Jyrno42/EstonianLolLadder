@@ -121,7 +121,7 @@ class API
     
     public function Error(Exception $e)
     {
-        ob_end_clean();
+        @ob_end_clean();
         die($this->SendResult(ApiHelper::Error($e->getMessage())));
     }
 }

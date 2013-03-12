@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * Elophant.com - PHP API
  * 

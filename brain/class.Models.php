@@ -316,7 +316,7 @@ class QueryObject
                             }
                             else
                             {
-                                throw new Exception(sprintf("Model %s requests a migration(%s) %s!", $this->class_name, $k, $v->Migrate($this->table_name)));
+                                throw new Exception(sprintf("Model %s requests a migration(%s)!", $this->class_name, $k));
                             }
                         }
                         $new_object->$k = isset($row[$k])?$row[$k]:null;
@@ -327,9 +327,8 @@ class QueryObject
                 {
                     if(sizeof($migrations) > 0)
                     {
-                        $migrations = self::smart_implode($migrations, $glue=";<br>");
-                        print $migrations;
-                        throw new Exception("MIGRATE $migrations!");
+                        $migrations = self::smart_implode($migrations, $glue="; <br>");
+                        throw new Exception($migrations);
                     }
                 }
                 if($single)

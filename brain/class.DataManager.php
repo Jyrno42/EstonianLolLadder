@@ -23,7 +23,7 @@ class DataManager
         if(function_exists("mysqli_connect"))
         {
             $this->mysqli = true;
-            if(($this->connection = mysqli_connect($host, $user, $pass, $db)) === FALSE)
+            if(($this->connection = @mysqli_connect($host, $user, $pass, $db)) === FALSE)
             {
                 $this->ThrowError(new Exception("MYSQLI: Failed to connect(" . mysqli_connect_errno() . "). " . mysqli_connect_error()));
             }
