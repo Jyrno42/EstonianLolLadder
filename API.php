@@ -33,7 +33,7 @@ try
 
     if (PHP_SAPI === 'cli')
     {
-        $updator = new UpdateManager($Init->Datamanager, $argv);
+        $updator = new UpdateManager($Init->Datamanager, $Init->Cache, $argv);
         exit;
     }
 

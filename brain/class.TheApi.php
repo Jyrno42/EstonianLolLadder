@@ -579,7 +579,7 @@ class UpdateManager
     private $no_sid = 0;
     private $no_updates = 0;
     
-    public function __construct($Datamanager, $argv)
+    public function __construct($Datamanager, $Cache, $argv)
     {
         $start = ($argv[1] == 'START');
         $work = ($argv[1] == 'WORK');
@@ -662,6 +662,10 @@ class UpdateManager
                 sleep(1);
             } while($st != $count);
             
+            $Cache->Set("updated", time(), 0);
+            $Cache->Set("updatelog", sprintf("Updated summoners using %d workers.", $count), 0);
+            
+            print "Complete\r\n";
             $this->loginfo("Complete...");
             $this->loginfo("--------------");
             $this->loginfo("--------------");
