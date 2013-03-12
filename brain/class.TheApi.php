@@ -690,7 +690,7 @@ class UpdateManager
             $block = true;
             if (flock($file, LOCK_EX, $block))
             {
-                fwrite($file, sprintf("[%s] %s: %s\r\n", date("c"), $type, $msg));
+                fwrite($file, sprintf("[%s] %s: %s\r\n", @date("c"), $type, $msg));
             }
             fclose($file);
         }
