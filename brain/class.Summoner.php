@@ -141,9 +141,10 @@ class Summoner extends Models
                 $this->safeFieldUpdate($changed, "HotStreak", $me->hotStreak == true, false);
                 $this->safeFieldUpdate($changed, "FreshBlood", $me->freshBlood == true, false);
                 $this->safeFieldUpdate($changed, "Veteran", $me->veteran == true, false);
-                $this->safeFieldUpdate($changed, "Score", floor($this->get_estimated_elo()), 0);
             }
         }
+        
+        $this->safeFieldUpdate($changed, "Score", floor($this->get_estimated_elo()), 0);
         $this->Modified = time();
         return $changed;
     }

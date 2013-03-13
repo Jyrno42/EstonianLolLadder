@@ -47,8 +47,8 @@
                             {if $Summoner->Veteran} <i class="icon-calendar"></i>{/if}
                         </td>
                         <td>{$Summoner->Region|strtoupper}</td>
-                        <td>{$Summoner->get_estimated_elo()}</td>
-                        <td data-rval="{$Summoner->get_estimated_elo()}">{$Summoner->TierName()} {$Summoner->RankName()} {$Summoner->LeaguePoints} LP {if $Summoner->League}<br>{$Summoner->League}{/if}</td>
+                        <td>{$Summoner->Score}</td>
+                        <td data-rval="{$Summoner->Score}">{$Summoner->TierName()} {$Summoner->RankName()} {$Summoner->LeaguePoints} LP {if $Summoner->League}<br>{$Summoner->League}{/if}</td>
                         <td>{$Summoner->WON}</td>
                         <td>{$Summoner->LOST}</td>
                         <td>
