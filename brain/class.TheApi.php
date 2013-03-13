@@ -166,7 +166,7 @@ class TheApi extends API
         }
         
         $key = sprintf("%s_ren_%s_%s", VERSION, $filter, $showtop ? self::$showtop[0] : self::$showtop[1]);
-        if(!$this->Init->Smarty->isCached($tplName, $key))
+        if(true || !$this->Init->Smarty->isCached($tplName, $key))
         {
             if($filter !== null)
             {
