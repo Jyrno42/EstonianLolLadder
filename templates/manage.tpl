@@ -77,7 +77,7 @@
                     
                     var txt = $(this).parents("form").find("textarea").val();
                     var lines = $.grep(txt.split(/\n|[\r\n]/), function(n, i) { return(n); });
-                    var region = $("select[name=region]").val();v
+                    var region = $("select[name=region]").val();
                     var todo = 0;
                     var done = 0;
                     
