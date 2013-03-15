@@ -106,7 +106,7 @@ class TheApi extends API
         {
             $result = Summoner::objects($this->Init->Datamanager)->filter(array("AID" => $s->AID))->get(1);
             if ($result) {
-                throw Exception(sprintf("Summoner %s added already.", $name));
+                throw new Exception(sprintf("Summoner %s added already.", $name));
             }
             
             $s->Update($api);
@@ -527,7 +527,8 @@ class TheApi extends API
         
         try
         {
-            $api = self::GetAPI($this->Elophant, $region);
+            $api = $this->Elophant;
+            self::GetAPI($api, $region);
             $theSummoner = $api->getSummonerByName(utf8_decode(trim($Name)));
             $theSummoner = $theSummoner->data;
         }
