@@ -148,6 +148,7 @@
                 if (done >= todo)
                 {
                     $("#addSummoners button").button('reset');
+                    $("textarea[name=summoner_names]").val("");
                 }
             }
         </script>
