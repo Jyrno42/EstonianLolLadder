@@ -33,6 +33,8 @@ class Summoner extends Models
     
     public $Modified;
     
+    public $Tracker;
+    
     private static $Fields = null;
     public static function ModelFields()
     {
@@ -70,6 +72,8 @@ class Summoner extends Models
             self::$Fields->Score = new IntField("Score", 11);
             
             self::$Fields->Modified = new IntField("Modified", 11);
+            
+            self::$Fields->Tracker = new BooleanField("Tracker");
         }
         return self::$Fields;
     }
