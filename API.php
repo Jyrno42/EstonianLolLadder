@@ -1,7 +1,7 @@
 <?php
 
 define("CLI", PHP_SAPI === 'cli');
-define("VERSION", "1.0.0");
+define("VERSION", "1.0.1");
 
 if (PHP_SAPI === 'cli')
 {

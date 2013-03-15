@@ -226,7 +226,7 @@ class Summoner extends Models
     
     public function safeFieldUpdate(&$changed, $fieldName, $value, $default)
     {
-        if($value)
+        if($value !== null)
         {
             if($this->$fieldName != $value)
             {
