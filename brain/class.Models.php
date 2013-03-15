@@ -50,7 +50,7 @@ class Models
                 {
                     $id = $k;
                 }
-                if($model->$k)
+                if($model->$k !== NULL)
                 {
                     $fields[$k] = $model->$k;
                 }
