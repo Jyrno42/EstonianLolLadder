@@ -5,6 +5,7 @@ class PrimaryKey extends Field
     protected $Type = 'INT';
     protected $Primary = true;
     protected $Lenght = 11;
+    protected $default_value = NULL;
     
     public function __construct($name)
     {
