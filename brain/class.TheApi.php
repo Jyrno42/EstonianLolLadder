@@ -286,7 +286,7 @@ class TheApi extends API
         
         var_dump($Summoner);
         $changed = $Summoner->Update($this->Elophant);
-        Summoner::save($Summoner, $this->Init->Datamanager);
+        print Summoner::save($Summoner, $this->Init->Datamanager);
         var_dump($changed);
         var_dump($Summoner);
     }
