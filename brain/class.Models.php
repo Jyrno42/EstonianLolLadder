@@ -76,6 +76,7 @@ class Models
                     $id,
                     $model->$id
                 );
+                return $query;
                 return $db->mysql_query($query) !== FALSE;
             }
         }
