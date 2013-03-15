@@ -132,13 +132,14 @@ class Models
         return new QueryObject($model_table_name, $class_name::ModelFields(), $class_name, $db);
     }
     
-    protected function update_copy()
+    public function update_copy()
     {
+        $class_name = self::model_class();
         $fields = $class_name::ModelFields();
         $this->original = (object)null;
         foreach($fields as $k => $v)
         {
-            $this->original->$k = $this->$v;
+            $this->original->$k = $this->$k;
         }
     }
 }

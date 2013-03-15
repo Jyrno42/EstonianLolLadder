@@ -152,45 +152,28 @@ class TheApi extends API
         $showtop = ApiHelper::GetParam("showtop", false, null, false);
         
         $tplName = $showtop ? "show_5.tpl" : "show_all.tpl";
-        
         $filter = array_search($filter, self::$filters) !== FALSE ? $filter : null;
         
-        if(ApiHelper::GetParam("inval", false))
+        if($filter !== null)
         {
-            $this->ClearCache();
+            $Summoners = Summoner::objects($this->Init->Datamanager)->filter(array("Region" => $filter, "Name" => QueryObject::NotEqual(null)))->orderby(array("Score"))->reverse()->get($showtop ? 5 : null);
         }
-        else 
+        else
         {
-            $this->Init->Smarty->setCaching(Smarty::CACHING_LIFETIME_SAVED);
-            $this->Init->Smarty->setCompileCheck(false);
-        }
-        
-        $key = sprintf("%s_ren_%s_%s", VERSION, $filter, $showtop ? self::$showtop[0] : self::$showtop[1]);
-        if(true || !$this->Init->Smarty->isCached($tplName, $key))
-        {
-            if($filter !== null)
-            {
-                $Summoners = Summoner::objects($this->Init->Datamanager)->filter(array("Region" => $filter, "Name" => QueryObject::NotEqual(null)))->orderby(array("Score"))->reverse()->get($showtop ? 5 : null);
-            }
-            else
-            {
-                $Summoners = Summoner::objects($this->Init->Datamanager)->filter(array("Name" => QueryObject::NotEqual(null)))->orderby(array("Score"))->reverse()->get($showtop ? 5 : null);
-            }
-            
-            $upd = $this->Init->Cache->Get("updated");
-            $updatelog = $this->Init->Cache->Get("updatelog");
-            
-            $this->Init->Smarty->assign("Label", $filter ? strtoupper($filter) : "EESTI");
-            $this->Init->Smarty->assign("Summoners", $Summoners);
-            $this->Init->Smarty->assign("Filter", $filter);
-            $upd = $this->Init->Cache->Get("updated");
-            $updatelog = $this->Init->Cache->Get("updatelog");
-            $this->Init->Smarty->assign("Update", $upd);
-            $this->Init->Smarty->assign("UpdateLog", $updatelog);
+            $Summoners = Summoner::objects($this->Init->Datamanager)->filter(array("Name" => QueryObject::NotEqual(null)))->orderby(array("Score"))->reverse()->get($showtop ? 5 : null);
         }
         
-        $this->Init->Smarty->setCacheLifetime(300);
-        $this->Init->Smarty->display($tplName, $key);
+        $upd = $this->Init->Cache->Get("updated");
+        $updatelog = $this->Init->Cache->Get("updatelog");
+        
+        $this->Init->Smarty->assign("Label", $filter ? strtoupper($filter) : "EESTI");
+        $this->Init->Smarty->assign("Summoners", $Summoners);
+        $this->Init->Smarty->assign("Filter", $filter);
+        $upd = $this->Init->Cache->Get("updated");
+        $updatelog = $this->Init->Cache->Get("updatelog");
+        $this->Init->Smarty->assign("Update", $upd);
+        $this->Init->Smarty->assign("UpdateLog", $updatelog);
+        $this->Init->Smarty->display($tplName);
     }
     
     public static function GetAPI(&$Elophant, $region)
