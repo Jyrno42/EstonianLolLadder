@@ -136,7 +136,7 @@ class Summoner extends Models
             {
                 $changed = true;
                 $this->Tier = $this->get_tier_from_outername($me->tier);
-                $this->League = $me->name;
+                $this->League = $ranked->name;
                 $this->Rank = $this->get_rank_from_outername($me->rank);
                 $this->LeaguePoints = $me->leaguePoints;
                 
