@@ -50,7 +50,7 @@ class Models
                 {
                     $id = $k;
                 }
-                if($model->$k !== NULL)
+                if(!$model->original || $model->$k !== $model->original->$k)
                 {
                     $fields[$k] = $model->$k;
                 }
@@ -64,21 +64,31 @@ class Models
             $q = new QueryObject($table, null, $cname, $db);
             if(($ret = $q->filter(array($id => $model->$id))->get(1)) !== null)
             {
-                // do a update query
-                $query = sprintf("UPDATE %s SET %s WHERE %s = '%s'",
-                    (defined("TABLE_PREFIX") ? TABLE_PREFIX : "") . $table,
-                    QueryObject::smart_implode($fields, ", ", 
-                        function ($k, $v, $last, $db)
-                        {
-                            return sprintf("%s = '%s'", $k, $db->mysql_escape_string($v));
-                        }
-                    , $db),
-                    $id,
-                    $model->$id
-                );
-                return $query;
-                return $db->mysql_query($query) !== FALSE;
-            }
+                if (sizeof($fields) > 0)
+                {
+                    // do a update query
+                    $query = sprintf("UPDATE %s SET %s WHERE %s = '%s'",
+                        (defined("TABLE_PREFIX") ? TABLE_PREFIX : "") . $table,
+                        QueryObject::smart_implode($fields, ", ", 
+                            function ($k, $v, $last, $db)
+                            {
+                                return sprintf("%s = '%s'", $k, $db->mysql_escape_string($v));
+                            }
+                        , $db),
+                        $id,
+                        $model->$id
+                    );
+                    $ret = $db->mysql_query($query) !== FALSE;
+                    if ($ret) {
+                        $model->update_copy(); // Update original copy so we don't need to save these changes again...
+                    }
+                    return $ret;
+                }
+                else
+                {
+                    return -1; // Nothing to do.
+                }
+            }   
         }
         
         try
@@ -101,6 +111,9 @@ class Models
             if($db->mysql_query($query) !== FALSE)
             {
                 $model->$id = $db->mysql_insert_id();
+                if ($ret) {
+                    $model->update_copy(); // Update original copy so we don't need to save these changes again...
+                }
                 return true;
             }
         }
@@ -117,6 +130,16 @@ class Models
         $model_table_name = strtolower($class_name . "s");
         
         return new QueryObject($model_table_name, $class_name::ModelFields(), $class_name, $db);
+    }
+    
+    protected function update_copy()
+    {
+        $fields = $class_name::ModelFields();
+        $this->original = (object)null;
+        foreach($fields as $k => $v)
+        {
+            $this->original->$k = $this->$v;
+        }
     }
 }
 
@@ -332,9 +355,12 @@ class QueryObject
                         throw new Exception($migrations);
                     }
                 }
+                
+                $new_object->update_copy();
                 if($single)
                 {
                     $ret = $new_object;
+                    $new_object->update_copy();
                 }
                 else
                 {
