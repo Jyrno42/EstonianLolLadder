@@ -77,7 +77,9 @@
                     
                     var txt = $(this).parents("form").find("textarea").val();
                     var lines = $.grep(txt.split(/\n|[\r\n]/), function(n, i) { return(n); });
-                    var region = $("select[name=region]").val();
+                    var region = $("select[name=region]").val();v
+                    var todo = 0;
+                    var done = 0;
                     
                     var errBox = $("#mainError #error");
                     errBox.html("Processing " + lines.length + " summoners from " + region + "...");
@@ -85,6 +87,7 @@
                     
                     for(var i = 0; i < lines.length; i++)
                     {
+                        todo++;
                         // Create a new element into the box indicating this summoner.
                         $("#mainError").append(
                             $("<div>")
@@ -122,6 +125,8 @@
                                         elem.find(".theName").text(msg).addClass("text-error");
                                     }
                                     elem.find(".theSpinner").remove();
+                                    done++;
+                                    on_finish(todo, done);
                                 }
                             )
                             .error(
@@ -129,12 +134,22 @@
                                 {
                                     elem.find(".theName").text("Could not update summoner " + name).addClass("text-error");
                                     elem.find(".theSpinner").remove();
+                                    done++;
+                                    on_finish(todo, done);
                                 }
                             );
                     });
                 });
 
             });
+            
+            function on_finish(todo, done)
+            {
+                if (done >= todo)
+                {
+                    $("#addSummoners button").button('reset');
+                }
+            }
         </script>
     {/literal}
 
