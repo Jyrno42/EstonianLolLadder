@@ -94,7 +94,7 @@ class TheApi extends API
         $this->Init->Smarty->display("manage.tpl");
     }
     
-    private function TryAddSummoner($theSummoner, $region, $name)
+    private function TryAddSummoner($theSummoner, $region, $name, $api)
     {
         $s = new Summoner();
         $s->AID = $theSummoner->acctId;
@@ -104,6 +104,12 @@ class TheApi extends API
         
         try 
         {
+            $result = Summoner::objects($this->Init->Datamanager)->filter(array("AID" => $s->AID))->get(1);
+            if ($result) {
+                throw Exception(sprintf("Summoner %s added already.", $name));
+            }
+            
+            $s->Update($api);
             Summoner::save($s, $this->Init->Datamanager);
             return array("success", sprintf("Summoner %s added to region %s!", $name, strtoupper($region)));
         }
@@ -516,12 +522,13 @@ class TheApi extends API
         $Name = urldecode(ApiHelper::GetParam("name", true));
     
         $theSummoner = null;
+        $api = null;
         $problem = false;
         
         try
         {
-            self::GetAPI($this->Elophant, $region);
-            $theSummoner = $this->Elophant->getSummonerByName(utf8_decode(trim($Name)));
+            $api = self::GetAPI($this->Elophant, $region);
+            $theSummoner = $api->getSummonerByName(utf8_decode(trim($Name)));
             $theSummoner = $theSummoner->data;
         }
         catch(Exception $e)
@@ -546,7 +553,7 @@ class TheApi extends API
         if($theSummoner === null)
             throw new Exception(sprintf("Summoner %s not found in region %s", $Name, strtoupper($region)));
             
-        $this->TryAddSummoner($theSummoner, $region, $Name);
+        $this->TryAddSummoner($theSummoner, $region, $Name, $api);
         
         return array("result" => "Success", "summoner" => $theSummoner);
     }
