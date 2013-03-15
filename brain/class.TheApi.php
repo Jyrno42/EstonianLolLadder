@@ -229,8 +229,8 @@ class TheApi extends API
     
     public function migrate()
     {
-        //if(!$this->Init->UserManager->Can("unused_13"))
-        //    throw new NotAuthorizedException();
+        if(!$this->Init->UserManager->Can("unused_13"))
+            throw new NotAuthorizedException();
         
         define("MIGRATE", true);
         

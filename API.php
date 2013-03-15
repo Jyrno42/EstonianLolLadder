@@ -35,7 +35,14 @@ try
     $API->SetBootstrap($Init);
     $API->Strap($Init);
 }
-
+catch(NotLoggedException $e)
+{
+    header("Location: ?action=Login");
+}
+catch(NotAuthorizedException $e)
+{
+    header("Location: ?action=Login");
+}
 catch(Exception $e)
 {
     $API->Error($e);
