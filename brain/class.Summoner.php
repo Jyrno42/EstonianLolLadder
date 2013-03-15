@@ -137,7 +137,10 @@ class Summoner extends Models
                 $this->safeFieldUpdate($changed, "Tier", $this->get_tier_from_outername($me->tier), 0);
                 $this->safeFieldUpdate($changed, "League", $ranked->name, "");
                 $this->safeFieldUpdate($changed, "Rank", $this->get_rank_from_outername($me->rank), 0);
+                
                 $this->safeFieldUpdate($changed, "LeaguePoints", $me->leaguePoints, 0);
+                print $me->leaguePoints;
+                
                 $this->safeFieldUpdate($changed, "HotStreak", $me->hotStreak == true, false);
                 $this->safeFieldUpdate($changed, "FreshBlood", $me->freshBlood == true, false);
                 $this->safeFieldUpdate($changed, "Veteran", $me->veteran == true, false);
