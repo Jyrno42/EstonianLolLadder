@@ -247,7 +247,8 @@ class Elophant{
 	*/
 	private function _makeCall($function, $noCache=false){
 		global $Init;
-		$cached = $Init->Cache->get(sprintf("lol_makeCall_%u", crc32($function)));
+		//$cached = $Init->Cache->get(sprintf("lol_makeCall_%u", crc32($function)));
+        $cached = false;
 		
 		if(!$cached || $noCache)
 		{
