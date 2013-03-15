@@ -284,6 +284,7 @@ class TheApi extends API
         //var_dump($this->Elophant->getCombinedRankedStatistics($Summoner->AID)); // Status:
         //var_dump($this->Elophant->getLeagues($Summoner->SID)); // Status:
         
+        var_dump($Summoner);
         $changed = $Summoner->Update($this->Elophant);
         Summoner::save($Summoner, $this->Init->Datamanager);
         var_dump($changed);
