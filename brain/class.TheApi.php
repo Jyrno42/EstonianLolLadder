@@ -277,7 +277,7 @@ class TheApi extends API
     public function test()
     {
         self::GetAPI($this->Elophant, "euw");
-        $Summoner  = Summoner::objects($this->Init->Datamanager)->filter(array("Name" => "AD Kringel"))->get(1);
+        $Summoner  = Summoner::objects($this->Init->Datamanager)->filter(array("Name" => "TH3F0X"))->get(1);
         
         //var_dump($this->Elophant->getPlayerStats($Summoner->AID, "current")); // Status: 
         //var_dump($this->Elophant->GetMostPlayedChampions($Summoner->AID)); // Status: 
