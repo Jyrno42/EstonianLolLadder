@@ -115,7 +115,7 @@ class UserManager
                 $query = "UPDATE " . TABLE_PREFIX . "sessions SET SKEY = '" . $this->sessionMan["SKEY"] . "' WHERE SID = '" . $this->sessionMan["SID"] . "';";
                 $this->connection->mysql_query($query);
                 return;
-            }					
+            }
         }
         
         $this->User->Valid = false;
@@ -234,22 +234,22 @@ class UserManager
 class Rights
 {
     public $Rights = array(
-        "manage" => 0,			
-        "manage_templates" => 1,			
-        "manage_users" => 2,			
-        "send_emails" => 3,			
-        "unused_4" => 4,			
-        "unused_5" => 5,			
-        "unused_6" => 6,			
-        "unused_7" => 7,			
-        "unused_8" => 8,			
-        "unused_9" => 9,			
-        "unused_10" => 10,			
-        "unused_11" => 11,			
-        "unused_12" => 12,			
-        "unused_13" => 13,			
-        "unused_14" => 14,			
-        "unused_15" => 15			
+        "manage" => 0,
+        "manage_templates" => 1,
+        "manage_users" => 2,
+        "send_emails" => 3,
+        "unused_4" => 4,
+        "unused_5" => 5,
+        "unused_6" => 6,
+        "unused_7" => 7,
+        "unused_8" => 8,
+        "unused_9" => 9,
+        "unused_10" => 10,
+        "unused_11" => 11,
+        "unused_12" => 12,
+        "unused_13" => 13,
+        "unused_14" => 14,
+        "unused_15" => 15
     );
     
     public function GetRights($array)

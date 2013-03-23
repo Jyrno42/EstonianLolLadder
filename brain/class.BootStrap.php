@@ -59,26 +59,6 @@ class BootStrap
         $this->Smarty->Assign("page", "");
     }
     
-    public static function smart_implode($array, $glue=", ", $callback=null, $extra=null)
-    {
-        if(!is_array($array))
-        {
-            return $array;
-        }
-        else
-        {
-            $ret = "";
-            foreach($array as $k => $v)
-            {
-                end($array);
-                
-                $part = ($callback !== null ? $callback($k, $v, $k === key($array), $extra, $glue) : $v);
-                $ret .= $part ? $part . ($k !== key($array) ? $glue : "") : "";
-            }
-            return $ret;
-        }
-    }
-    
     public function Strap()
     {
         if(!constant("IS_INSTALLED"))

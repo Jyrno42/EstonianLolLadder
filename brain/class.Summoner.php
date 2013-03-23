@@ -83,7 +83,7 @@ class Summoner extends Models
         $champs = json_decode($this->Champions);
         if($champs)
         {
-            return BootStrap::smart_implode($champs, ", ", function ($k, $v, $last, $db) {
+            return smart_implode($champs, ", ", function ($k, $v, $last, $db) {
             
                 return sprintf("%s (%.1f%%)", $v[0], $v[1]*100);
             
@@ -178,6 +178,11 @@ class Summoner extends Models
             "IV",
             "V",
         );
+        
+        if ($this->Tier == 6) {
+            return "";
+        }
+        
         return isset($arr[$this->Rank]) ? $arr[$this->Rank] : $arr[0];
     }
     
@@ -247,29 +252,121 @@ class Summoner extends Models
         }
     }
 
-    /*
-    // Get Champions
-    if(true)
+    
+    function get_team($teamId)
     {
-        $champions = $api->GetMostPlayedChampions($Summoner->AID);
-        if($champions)
+        return ($teamId / 100) - 1;
+    }
+    function other_team($teamId)
+    {
+        return $teamId == 1 ? 0 : 1;
+    }
+    
+    private function GetPlayer($name, $data, $api, $gameId, &$nodata)
+    {
+        if (!isset($data->statistics))
         {
-            $arr = array();
-            foreach($champions as $i => $j)
-            {   
-                $played = $j->totalGamesPlayed;
-                $arr[] = array($this->ChampionName($j->championId, $api), $played);
-                if(sizeof($arr) > 3)
-                    break;
-            }
-            $str = json_encode($arr);
-            if($Summoner->Champions != $str)
+            $summoner = $api->getSummonerByName(trim($name));
+            if ($summoner && isset($summoner->data))
             {
-                $changed = true;
-                $Summoner->Champions = $str;
+                $info = $api->getRecentGames($summoner->data->acctId);
+                if ($info && isset($info->data))
+                {
+                    $Games = array_reverse($info->data->gameStatistics);
+                    foreach($Games as $v)
+                    {
+                        if ($v->gameId == $gameId)
+                        {
+                            $data = $v;
+                            break;
+                        }
+                    }
+                }
             }
+            $nodata = $nodata || !isset($data->statistics);
         }
-    }*/
+        
+        $p = new Player;
+        $p->ID = $data->summonerId;
+        $p->Name = $name;
+        $p->Champion = $data->championId;
+        $p->Spell1 = isset($data->spell1) ? $data->spell1 : null;
+        $p->Spell2 = isset($data->spell2) ? $data->spell2 : null;
+        
+        $p->Stats = isset($data->statistics) ? $data->statistics : null;
+        
+        return $p;
+    }
+    
+    public function Tracker($api, $DB)
+    {
+        @ini_set("max_execution_time", 60000);
+        if (!$this->Tracker)
+        {
+            $RecentGames = $api->getRecentGames($this->AID);
+            if ($RecentGames)
+            {
+                $Games = array_reverse($RecentGames->data->gameStatistics);
+                
+                foreach($Games as $v)
+                {
+                    if ($v->queueType == "RANKED_SOLO_5x5")
+                    {
+                        $game = new Game;
+                        $game->ID = $v->gameId;
+                        $game->Myself = $this->AID;
+                        $game->Region = $this->Region;
+                        $game->UnknownData = false;
+                        
+                        $mat = array();
+                        if (preg_match("/(\d+)/", $v->createDate, $mat) == 1)
+                        {
+                            $game->GameDate = floor(bigintval(trim($mat[1])) / 1000);
+                        }
+                        
+                        // If game exists then skip this.
+                        $Games = Game::objects($DB)->filter(array("ID" => $game->ID))->get(1);
+                        if ($Games)
+                        {
+                            continue;
+                        }
+                        
+                        $m_team = $v->teamId;
+                        $o_team = $m_team == TEAM_BLUE ? TEAM_PURPLE : TEAM_BLUE;
+                        
+                        $game->Winner = $o_team;
+                        foreach($v->statistics as $v2)
+                        {
+                            if ($v2->statType == "WIN" && $v2->value == 1)
+                            {
+                                $game->Winner = $m_team;
+                            }
+                        }
+                        
+                        $game->Teams[$m_team] = new Team;
+                        $game->Teams[$m_team]->ID = $m_team;
+                        
+                        $game->Teams[$o_team] = new Team;
+                        $game->Teams[$o_team]->ID = $o_team;
+                        
+                        // Get Myself
+                        $game->Teams[$m_team]->Players[] = $this->GetPlayer($this->Name, $v, $api, $game->ID, $game->UnknownData);
+                        
+                        // Get fellowplayers
+                        foreach($v->fellowPlayers as $v2)
+                        {
+                            $game->Teams[$v2->teamId]->Players[] = $this->GetPlayer($v2->summonerName, $v2, $api, $game->ID, $game->UnknownData);
+                        }
+                        
+                        $game->WonGame = $game->Winner == $m_team;
+                        Game::save($game, $DB);
+                    }
+                }
+            }
+            return true;
+        }
+        return false;
+    }
     
     protected static function class_name()
     {

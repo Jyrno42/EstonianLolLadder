@@ -49,14 +49,27 @@ class DataManager
     {
         return $this->mysqli ?
              mysqli_error($this->connection) . ". (" . mysqli_errno($this->connection) . ")" : 
-             mysql_errno($this->connection) . ". (" . mysql_errno($this->connection) . ")"; 
+             mysql_error($this->connection) . ". (" . mysql_errno($this->connection) . ")"; 
+    }
+    public function mysql_errno()
+    {
+        return $this->mysqli ?
+             mysqli_errno($this->connection) : 
+             mysql_errno($this->connection); 
     }
     public function mysql_query($a1)
     {
         $ret = $this->mysqli ? mysqli_query($this->connection, $a1) : mysql_query($a1, $this->connection);
         if($ret === FALSE)
         {
-            $this->ThrowError(new Exception($this->mysql_error() . " " . $a1));
+            if ($this->mysql_errno() == 1146) // Table doesen't excist.
+            {
+                $this->ThrowError(new TableDoesNotExist($a1));
+            }
+            else
+            {
+                $this->ThrowError(new Exception($this->mysql_error() . " " . $a1));
+            }
         }
         return $ret;
     }
@@ -79,5 +92,13 @@ class DataManager
     public function mysql_fetch_assoc($result)
     {
         return $this->mysqli ? mysqli_fetch_assoc($result) : mysql_fetch_assoc($result);
+    }
+}
+
+class TableDoesNotExist extends Exception
+{
+    public function __construct($query)
+    {
+         parent::__construct($query, 1339);
     }
 }

@@ -40,6 +40,8 @@ class Models
         $cname = get_class($model);
         $fields = array();
         
+        $model->pre_save();
+        
         // Check if id field is provided.
         // Also store new values
         foreach($cname::ModelFields() as $k => $v)
@@ -50,7 +52,7 @@ class Models
                 {
                     $id = $k;
                 }
-                if(!$model->original || $model->$k !== $model->original->$k)
+                if(!isset($model->original) || $model->$k !== $model->original->$k)
                 {
                     $fields[$k] = $model->$k;
                 }
@@ -69,7 +71,7 @@ class Models
                     // do a update query
                     $query = sprintf("UPDATE %s SET %s WHERE %s = '%s'",
                         (defined("TABLE_PREFIX") ? TABLE_PREFIX : "") . $table,
-                        QueryObject::smart_implode($fields, ", ", 
+                        smart_implode($fields, ", ", 
                             function ($k, $v, $last, $db)
                             {
                                 return sprintf("%s = '%s'", $k, $db->mysql_escape_string($v));
@@ -95,13 +97,13 @@ class Models
         {
             $query = sprintf("INSERT INTO %s(%s) VALUES(%s)",
                 (defined("TABLE_PREFIX") ? TABLE_PREFIX : "") . $table,
-                QueryObject::smart_implode($fields, ", ", 
+                smart_implode($fields, ", ", 
                     function ($k, $v, $last, $db)
                     {
                         return sprintf("%s", $db->mysql_escape_string($k));
                     }
                 , $db),
-                QueryObject::smart_implode($fields, ", ", 
+                smart_implode($fields, ", ", 
                     function ($k, $v, $last, $db)
                     {
                         return sprintf("'%s'", $db->mysql_escape_string($v));
@@ -142,6 +144,11 @@ class Models
             $this->original->$k = $this->$k;
         }
     }
+    
+    public function post_load()
+    {
+        // Do nothing.
+    }
 }
 
 class QueryObject
@@ -161,26 +168,6 @@ class QueryObject
         $this->table_name = (defined("TABLE_PREFIX") ? TABLE_PREFIX : "") . $table;
         $this->table_fields = $fields;
         $this->class_name = $cName;
-    }
-
-    public static function smart_implode($array, $glue=", ", $callback=null, $extra=null)
-    {
-        if(!is_array($array))
-        {
-            return $array;
-        }
-        else
-        {
-            $ret = "";
-            foreach($array as $k => $v)
-            {
-                end($array);
-                
-                $part = ($callback !== null ? $callback($k, $v, $k === key($array), $extra, $glue) : $v);
-                $ret .= $part ? $part . ($k !== key($array) ? $glue : "") : "";
-            }
-            return $ret;
-        }
     }
     
     private static function select($args=array(), $table_fields, $db)
@@ -206,8 +193,8 @@ class QueryObject
         
         return sprintf(self::SELECT, 
             in_array($modifier, $select_modifier) ? $modifier : "",
-            self::smart_implode($expr),
-            self::smart_implode($table),
+            smart_implode($expr),
+            smart_implode($table),
             self::sql_where($filter, $table_fields, $db),
             self::sql_groupby($groupby),
             self::sql_orderby($orderby, $order),
@@ -220,7 +207,7 @@ class QueryObject
     {
         if(is_array($v) && $k == "__oneof")
         {
-            return self::smart_implode($v, " OR ", 
+            return smart_implode($v, " OR ", 
                 function ($k2, $v2, $last2, $db2, &$glue2) {
                     return QueryObject::where_implode($k2, $v2, $last2, $db2, $glue2);
                 }
@@ -235,7 +222,7 @@ class QueryObject
     {
         $glue = " AND ";
         return sizeof($filter) > 0 ? 
-            "WHERE " . self::smart_implode($filter, " AND ", 
+            "WHERE " . smart_implode($filter, " AND ", 
                 function ($k, $v, $last, $db, &$glue) {
                     return QueryObject::where_implode($k, $v, $last, $db, $glue);
                 }
@@ -244,11 +231,11 @@ class QueryObject
     }
     private static function sql_groupby($fields)
     {
-        return sizeof($fields) > 0 ? "GROUP BY " . self::smart_implode($fields, ", ") : "";
+        return sizeof($fields) > 0 ? "GROUP BY " . smart_implode($fields, ", ") : "";
     }
     private static function sql_orderby($fields, $order="ASC")
     {
-        return sizeof($fields) > 0 ? "ORDER BY " . self::smart_implode($fields, ", ") . " " . $order : "";
+        return sizeof($fields) > 0 ? "ORDER BY " . smart_implode($fields, ", ") . " " . $order : "";
     }
     private static function sql_limit($limit, $offset)
     {
@@ -322,56 +309,90 @@ class QueryObject
         {
             $migrations = array();
         }
-        if(($result = $this->DB->mysql_query($query)) !== FALSE)
+        $cname = $this->class_name;
+        
+        try
         {
-            $ret = null;
-            while (($row = $result->fetch_assoc()) !== NULL)
+            if(($result = $this->DB->mysql_query($query)) !== FALSE)
             {
-                $new_object = new $this->class_name;
-                $cname = $this->class_name;
+                $ret = null;
+                while (($row = $result->fetch_assoc()) !== NULL)
+                {
+                    $new_object = new $this->class_name;
+                    
+                    foreach($cname::ModelFields() as $k => $v)
+                    {
+                        if(is_object($v) && get_parent_class($v) == "Field")
+                        {
+                            if(!array_key_exists($k, $row))
+                            {
+                                if(defined("MIGRATE"))
+                                {
+                                    $migrations[] = $v->Migrate($this->table_name);
+                                }
+                                else
+                                {
+                                    throw new Exception(sprintf("Model %s requests a migration(%s)!", $this->class_name, $k));
+                                }
+                            }
+                            $new_object->$k = isset($row[$k])?$row[$k]:null;
+                        }
+                    }
+                    
+                    if(defined("MIGRATE"))
+                    {
+                        if(sizeof($migrations) > 0)
+                        {
+                            $migrations = smart_implode($migrations, $glue="; <br>");
+                            throw new Exception($migrations);
+                        }
+                    }
+                    
+                    $new_object->update_copy();
+                    $new_object->post_load();
+                    if($single)
+                    {
+                        $ret = $new_object;
+                    }
+                    else
+                    {
+                        if(!$ret)
+                            $ret = array();
+                        $ret[] = $new_object;
+                    }
+                }
+                $result->close();
+                return $ret;
+            }
+        }
+        catch(TableDoesNotExist $e)
+        {
+            if(defined("MIGRATE"))
+            {
+                $primary = "";
                 foreach($cname::ModelFields() as $k => $v)
                 {
-                    if(is_object($v) && get_parent_class($v) == "Field")
+                    if ($v->get_primary())
                     {
-                        if(!array_key_exists($k, $row))
-                        {
-                            if(defined("MIGRATE"))
-                            {
-                                $migrations[] = $v->Migrate($this->table_name);
-                            }
-                            else
-                            {
-                                throw new Exception(sprintf("Model %s requests a migration(%s)!", $this->class_name, $k));
-                            }
-                        }
-                        $new_object->$k = isset($row[$k])?$row[$k]:null;
+                        $primary = $k;
                     }
+                    $migrations[] = $v->Migrate(null);
                 }
-                
-                if(defined("MIGRATE"))
-                {
-                    if(sizeof($migrations) > 0)
-                    {
-                        $migrations = self::smart_implode($migrations, $glue="; <br>");
-                        throw new Exception($migrations);
-                    }
-                }
-                
-                $new_object->update_copy();
-                if($single)
-                {
-                    $ret = $new_object;
-                    $new_object->update_copy();
-                }
-                else
-                {
-                    if(!$ret)
-                        $ret = array();
-                    $ret[] = $new_object;
-                }
+                $query = sprintf("CREATE TABLE %s (%s, PRIMARY KEY (%s))",
+                    $this->table_name,
+                    smart_implode($migrations, $glue=", "),
+                    $primary
+                );
+                print $query;
             }
-            $result->close();
-            return $ret;
+            else
+            {
+                throw $e;
+            }
+        }
+        catch(Exception $e)
+        {
+            throw $e;
         }
         return null;
     }

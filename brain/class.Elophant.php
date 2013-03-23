@@ -237,6 +237,10 @@ class Elophant{
 		return $this->_makeCall($this->_lolServer . '/ranked_stats/' . $accountId . '/' . $lolSeason . '?');
 	}
     
+	public function getRecentGames($accountId){
+		return $this->_makeCall($this->_lolServer . '/recent_games/' . $accountId . '?');
+	}
+    
 	/***************** SOME STUFF ************************************************************/
 	
 	/**

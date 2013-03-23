@@ -13,3 +13,16 @@ class TextField extends Field
         $this->Lenght = $len;
     }
 }
+
+class LongTextField extends Field
+{
+    protected $Type = 'LONGTEXT';
+    protected $Primary = false;
+    protected $Lenght = null;
+    protected $default_value = '';
+    
+    public function __construct($name)
+    {
+        parent::__construct($name);
+    }
+}

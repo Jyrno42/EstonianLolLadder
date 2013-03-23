@@ -22,5 +22,7 @@ function require_lib($fName, $error)
  * This file includes all libaries used in our project
  */
 
+require_lib("libs/utility.php", "Utility");
+
 require_lib("libs/Smarty/Smarty.class.php", "Smarty");
 spl_autoload_register("brain_loader");

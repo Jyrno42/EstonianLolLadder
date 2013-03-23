@@ -1,53 +1,6 @@
 <?php
 
-function relative_time($timestamp)
-{
-    if(!$timestamp)
-        return "ammu";
-    
-    $difference = time() - $timestamp;
-    $periods = array("sekund", "minut", "tund", "päev", "nädal", "kuu", "aasta", "dekaad");
-    $periods2 = array("sekundit", "minutit", "tundi", "päeva", "nädalat", "kuud", "aastat", "dekaadi");
-    $lengths = array("60","60","24","7","4.35","12","10");
-    if ($difference > 0)
-    {
-        $ending = "tagasi";
-    }
-    else
-    {
-        $difference = -$difference;
-        $ending = "pärast";
-    }
-    $j = 0;
-    for($j = 0; $difference >= $lengths[$j]; $j++)
-        $difference /= $lengths[$j];
-    
-    $difference = round($difference);
-    return sprintf("%s %s %s", $difference, $difference != 1 ? $periods2[$j] : $periods[$j], $ending);
-}
-
 ini_set('default_charset', 'UTF-8');
-
-function print_cli($str)
-{
-    if(constant("CLI"))
-        print "$str";
-}
-
-function print_cli_line($str)
-{
-    print_cli("$str\n");
-}
-
-function print_cli_progressbar($current, $target)
-{
-    if(constant("CLI"))
-    {
-        $bar_size = floor(56*$current/$target);
-        $bar = str_pad(str_repeat("=", $bar_size), 56, " ", STR_PAD_RIGHT);
-        print sprintf("Updating %03d/%03d (%s) %03d%%\r", $current, $target, $bar, $current/$target*100);
-    }
-}
     
 class TheApi extends API
 {
@@ -59,39 +12,34 @@ class TheApi extends API
     
     private $Elophant = null;
     
+    static $filters = array("euw", "eune");
+    static $showtop = array("top", "all");
+    
     public function TheApi()
     {
         $this->Elophant = new Elophant(array("apiKey" => "", "lolServer" => "euw"));
     
-        $this->AddAction("RunCrons", array($this, "RunCrons"));
         $this->AddAction("render", array($this, "Render"));
         
         $this->AddAction("Login", array($this, "ShowLogin"));
         $this->AddAction("Login2", array($this, "Login"));
         $this->AddAction("Manage", array($this, "Manage"));
+        $this->AddAction("Tracker", array($this, "Tracker"));
         
         $this->AddAction("AddSummoner", array($this, "AddSummoner"));
         $this->AddAction("test", array($this, "test"));
         
+        $this->AddAction("names", array($this, "names"));
+        
         $this->AddAction("migrate", array($this, "migrate"));
     }
     
-    public function ShowLogin()
+    /**
+      * Utility Stuff
+      */
+    public function SetBootstrap($Init)
     {
-        if($this->Init->UserManager->Can("unused_13"))
-        {
-            $_GET["redirect"] = "API.php?action=Manage";
-            return true;
-        }
-        $this->Init->Smarty->display("login.tpl");
-    }
-    
-    public function Manage()
-    {
-        if(!$this->Init->UserManager->Can("unused_13"))
-            throw new NotAuthorizedException();
-        
-        $this->Init->Smarty->display("manage.tpl");
+        $this->Init = $Init;
     }
     
     private function TryAddSummoner($theSummoner, $region, $name, $api)
@@ -119,67 +67,9 @@ class TheApi extends API
         }
     }
     
-    static $filters = array("euw", "eune");
-    static $showtop = array("top", "all");
-    
-    function array_cartesian_product($arrays)
-    {
-        $result = array();
-        $arrays = array_values($arrays);
-        $sizeIn = sizeof($arrays);
-        $size = $sizeIn > 0 ? 1 : 0;
-        foreach ($arrays as $array)
-            $size = $size * sizeof($array);
-        for ($i = 0; $i < $size; $i ++)
-        {
-            $result[$i] = array();
-            for ($j = 0; $j < $sizeIn; $j ++)
-                array_push($result[$i], current($arrays[$j]));
-            for ($j = ($sizeIn -1); $j >= 0; $j --)
-            {
-                if (next($arrays[$j]))
-                    break;
-                elseif (isset ($arrays[$j]))
-                    reset($arrays[$j]);
-            }
-        }
-        return $result;
-    }
-    
     public function ClearCache()
-    {       
-        $this->Init->Smarty->clearAllCache();
-    }
-
-    public function Render()
     {
-        $Summoners = array();
-        $filter = ApiHelper::GetParam("filter", false, null, false);
-        $showtop = ApiHelper::GetParam("showtop", false, null, false);
-        
-        $tplName = $showtop ? "show_5.tpl" : "show_all.tpl";
-        $filter = array_search($filter, self::$filters) !== FALSE ? $filter : null;
-        
-        if($filter !== null)
-        {
-            $Summoners = Summoner::objects($this->Init->Datamanager)->filter(array("Region" => $filter, "Name" => QueryObject::NotEqual(null)))->orderby(array("Score"))->reverse()->get($showtop ? 5 : null);
-        }
-        else
-        {
-            $Summoners = Summoner::objects($this->Init->Datamanager)->filter(array("Name" => QueryObject::NotEqual(null)))->orderby(array("Score"))->reverse()->get($showtop ? 5 : null);
-        }
-        
-        $upd = $this->Init->Cache->Get("updated");
-        $updatelog = $this->Init->Cache->Get("updatelog");
-        
-        $this->Init->Smarty->assign("Label", $filter ? strtoupper($filter) : "EESTI");
-        $this->Init->Smarty->assign("Summoners", $Summoners);
-        $this->Init->Smarty->assign("Filter", $filter);
-        $upd = $this->Init->Cache->Get("updated");
-        $updatelog = $this->Init->Cache->Get("updatelog");
-        $this->Init->Smarty->assign("Update", $upd);
-        $this->Init->Smarty->assign("UpdateLog", $updatelog);
-        $this->Init->Smarty->display($tplName);
+        $this->Init->Smarty->clearAllCache();
     }
     
     public static function GetAPI(&$Elophant, $region)
@@ -217,20 +107,114 @@ class TheApi extends API
         
         throw new Exception("Out of API keys!");
     }
-
-    function startsWith($haystack, $needle)
+    
+    public function GetName($aid, $region)
     {
-        return !strncmp($haystack, $needle, strlen($needle));
+        $cached = $this->Init->Cache->Get(sprintf("lol_SummonerName_%s_%s", $aid, $region));
+        if(!$cached)
+        {
+            $Summoner = Summoner::objects($this->Init->Datamanager)->filter(array("AID" => $aid))->get(1);
+            if ($Summoner)
+            {
+                $cached = $Summoner->Name;
+            }
+            else
+            {
+                //self::GetAPI($this->Elophant, $region);
+                throw new Exception("NOTFOUND");
+            }
+            
+            $this->Init->Cache->Set(sprintf("lol_SummonerName_%s_%s", $aid, $region), $cached, 86400);
+        }
+        return $cached;
     }
-
-    function endsWith($haystack, $needle)
+    
+    private function ChampionName($id, $api)
     {
-        $length = strlen($needle);
-        if ($length == 0) {
+        $cached = unserialize($this->Init->Cache->Get("lol_ChampionName"));
+        if(!$cached)
+        {
+            $ret = $api->getChampions();
+            $cached = array();
+            foreach($ret->data as $champ)
+            {
+                $cached[$champ->id] = $champ->name;
+            }
+            $this->Init->Cache->Set("lol_ChampionName", serialize($cached), 86400);
+        }
+        return isset($cached[$id]) ? $cached[$id] : "-";
+    }
+    
+    /**
+      * Views
+      */
+    public function ShowLogin()
+    {
+        if($this->Init->UserManager->Can("unused_13"))
+        {
+            $_GET["redirect"] = "API.php?action=Manage";
             return true;
         }
+        $this->Init->Smarty->display("login.tpl");
+    }
+    
+    public function Manage()
+    {
+        if(!$this->Init->UserManager->Can("unused_13"))
+            throw new NotAuthorizedException();
+        
+        $this->Init->Smarty->display("manage.tpl");
+    }
+    
+    public function Tracker()
+    {
+        if(!$this->Init->UserManager->Can("unused_13"))
+            throw new NotAuthorizedException();
+        
+        $me = 25924518;
+        $Games = Game::objects($this->Init->Datamanager)->filter(array("Myself" => $me))->orderby(array("GameDate"))->reverse()->get();
+        if ($Games)
+        {
+            foreach($Games as $k => $v)
+            {
+                $v->Api = $this;
+            }
+        }
+        
+        $this->Init->Smarty->assign("Games", $Games);
+        
+        $this->Init->Smarty->display("tracker.html");
+    }
 
-        return (substr($haystack, -$length) === $needle);
+    public function Render()
+    {
+        $Summoners = array();
+        $filter = ApiHelper::GetParam("filter", false, null, false);
+        $showtop = ApiHelper::GetParam("showtop", false, null, false);
+        
+        $tplName = $showtop ? "show_5.tpl" : "show_all.tpl";
+        $filter = array_search($filter, self::$filters) !== FALSE ? $filter : null;
+        
+        if($filter !== null)
+        {
+            $Summoners = Summoner::objects($this->Init->Datamanager)->filter(array("Region" => $filter, "Name" => QueryObject::NotEqual(null)))->orderby(array("Score"))->reverse()->get($showtop ? 5 : null);
+        }
+        else
+        {
+            $Summoners = Summoner::objects($this->Init->Datamanager)->filter(array("Name" => QueryObject::NotEqual(null)))->orderby(array("Score"))->reverse()->get($showtop ? 5 : null);
+        }
+        
+        $upd = $this->Init->Cache->Get("updated");
+        $updatelog = $this->Init->Cache->Get("updatelog");
+        
+        $this->Init->Smarty->assign("Label", $filter ? strtoupper($filter) : "EESTI");
+        $this->Init->Smarty->assign("Summoners", $Summoners);
+        $this->Init->Smarty->assign("Filter", $filter);
+        $upd = $this->Init->Cache->Get("updated");
+        $updatelog = $this->Init->Cache->Get("updatelog");
+        $this->Init->Smarty->assign("Update", $upd);
+        $this->Init->Smarty->assign("UpdateLog", $updatelog);
+        $this->Init->Smarty->display($tplName);
     }
     
     public function migrate()
@@ -246,7 +230,7 @@ class TheApi extends API
             if($v == "." || $v == "..")
                 continue;
             
-            if (!$this->startsWith($v, "class.") || !$this->endsWith($v, ".php"))
+            if (!startsWith($v, "class.") || !endsWith($v, ".php"))
                 continue;
             require_once($v);
         }
@@ -267,227 +251,58 @@ class TheApi extends API
     {
         self::GetAPI($this->Elophant, "euw");
         $Summoner  = Summoner::objects($this->Init->Datamanager)->filter(array("Name" => "TH3F0X"))->get(1);
+
+        //$Games = Game::objects($this->Init->Datamanager)->all()->get();
+        //var_dump($Games);
         
-        //var_dump($this->Elophant->getPlayerStats($Summoner->AID, "current")); // Status: 
-        //var_dump($this->Elophant->GetMostPlayedChampions($Summoner->AID)); // Status: 
-        //var_dump($this->Elophant->getCombinedRankedStatistics($Summoner->AID)); // Status:
-        //var_dump($this->Elophant->getLeagues($Summoner->SID)); // Status:
-        
-        var_dump($Summoner);
-        $changed = $Summoner->Update($this->Elophant);
-        print Summoner::save($Summoner, $this->Init->Datamanager);
-        var_dump($changed);
-        var_dump($Summoner);
+        $ret = $Summoner->Tracker($this->Elophant, $this->Init->Datamanager);
+        //var_dump($ret);
     }
     
-    public function RunCrons()
+    public function names()
     {
-        $this->ClearCache();
-        print_cli_line("Starting RunCrons");
-        $start_time = microtime(true);
+        if(!$this->Init->UserManager->Can("unused_13"))
+            throw new NotAuthorizedException();
         
-        @ini_set("max_execution_time", 60000);
+        $dir = "C:\Dropbox\Serverid\www\LOL\media\lol";
+        $dir2 = "C:\Dropbox\Serverid\www\LOL\media\champions";
         
-        $filter = ApiHelper::GetParam("name", false, null, false);
+        self::GetAPI($this->Elophant, "euw");
         
-        if($filter !== false)
+        $champs = $this->Elophant->getChampions();
+        $nchamps = array();
+        
+        foreach($champs->data as $k => $v)
         {
-            $Summoners = Summoner::objects($this->Init->Datamanager)->filter(array("Name" => $filter))->orderby(array("AID"))->reverse()->get();
+            $name = $v->name;
+            $name = str_replace(".", "", $name);
+            $name = str_replace(" ", "", $name);
+            $name = str_replace("'", "", $name);
+            $name = strtolower($name);
+            $nchamps[$name] = $v->id;
         }
-        else 
+        $files = scandir($dir);
+        foreach($files as $v)
         {
-            $Summoners = Summoner::objects($this->Init->Datamanager)->all()->orderby(array("AID"))->reverse()->get();
-        }
-        
-        if(constant("CLI"))
-        {
-            global $argv;
-            $Summoners = array_slice($Summoners, $argv[1], $argv[2]);
-        }
-        
-        //$Summoners = Summoner::objects($this->Init->Datamanager)->filter(array("Name" => "TH3F0X"))->orderby(array("ELO"))->reverse()->get();
-        //$Summoners = Summoner::objects($this->Init->Datamanager)->filter(array("Champions" => ""))->orderby(array("ELO"))->reverse()->get();
-        //$Summoners = Summoner::objects($this->Init->Datamanager)->all()->orderby(array("ELO"))->reverse()->get();
-        
-        print_cli_line("");
-        print_cli_line(sprintf("Got %d summoners from DB to check for updates!", sizeof($Summoners)));
-        print_cli_line("");
-        
-        print_cli_line("###############################################################################");
-        print_cli_line("#####                           Starting update                           #####");
-        print_cli_line("###############################################################################");
-        print_cli_line("");
-        print_cli_line("");
-        
-        $n = 0;
-        $problem = "";
-        try
-        {
-            print_cli("Checking if elophant is online");
-            $APITYPE = "Elophant.com";
-            self::GetAPI($this->Elophant, "euw");
-            print_cli_line("\t\t\t\t\t[SUCCESS]");
-                        
-            foreach($Summoners as $k => $Summoner)
-            {
-                print_cli_progressbar($k+1, sizeof($Summoners));
-                
-                try
-                {
-                    self::GetAPI($this->Elophant, $Summoner->Region);
-                }
-                catch(Exception $e)
-                {
-                    continue;
-                }
-                $api = $this->Elophant;
-                $changed = false;
-                
-                if($Summoner->SID == 0)
-                {
-                    continue;
-                }
-                
-                if(!$api->getPlayerStats($Summoner->AID, "CURRENT"))
-                {
-                    $problem = $Summoner->Region . " Api seems to be down!";
-                    continue;
-                }
-                
-                $changed = $Summoner->Update($api);
-                
-                // Save
-                if($changed)
-                {
-                    Summoner::save($Summoner, $this->Init->Datamanager);
-                    $this->ClearCache();
-                    $n++;
-                }
-            }
-        }
-        catch(Exception $e)
-        {
-            print $e->getMessage();
-            /*
-            $APITYPE = "Lolking.com";
-            print_cli_line("\t\t\t\t\t[FAIL]");
-            $problem = "Using Lolking.com as fallback since Elophant API is down!";
-            print_cli_line($problem . "\t[SUCCESS]");
+            if ($v == "." || $v == "..")
+                continue;
             
-            foreach($Summoners as $k => $Summoner)
-            {
-                print_cli_progressbar($k+1, sizeof($Summoners));
+            $cName = str_replace("_Square_0.png", "", $v);
+            $cName = str_replace("_square_0.png", "", $cName);
+            $cName = strtolower($cName);
             
-                $changed = false;
-                $url = "http://www.lolking.net/summoner/%s/%d";
-                
-                $str = file_get_contents(sprintf($url, $Summoner->Region, $Summoner->SID));
-                $body = substr($str, strpos($str, '<div class="summoner_titlebar" style="position: relative;">'), strpos($str, '<div style="float: left; width: 300px; margin-right: 0px;">'));
-                $body = str_replace("\t", "", $body);
-                $body = str_replace("  ", " ", $body);
-                $body = str_replace("\r", "", $body);
-                $body = str_replace("\n", "", $body);
-                
-                // TODO: Rewrite this to use regex instead of dom parsing so it will be less time/memory/cpu consuming.
-                $html = str_get_html($body);
-                if(!$html)
-                    continue;
-                foreach($html->find(".featured") as $li)
-                {
-                    $heading = $li->find(".personal_ratings_heading", 0);
-                    if(!$heading || $heading->plaintext != "Solo 5v5")
-                        continue;
-                    
-                    foreach($li->find("div") as $div)
-                    {
-                        if(strpos($div->plaintext, "Rating") !== FALSE)
-                        {
-                            $elo = trim($div->find("span", 0)->plaintext);
-                            if($elo && is_numeric($elo) && $elo > 0 && $Summoner->ELO != $elo)
-                            {
-                                $changed = true;
-                                $Summoner->ELO = $elo;
-                            }
-                        }
-                        if(strpos($div->plaintext, "Wins") !== FALSE)
-                        {
-                            $data = trim($div->find("span", 0)->plaintext);
-                            if($data && is_numeric($data) && $data > 0 && $Summoner->WON != $data)
-                            {
-                                $changed = true;
-                                $Summoner->WON = $data;
-                            }
-                        }
-                        if(strpos($div->plaintext, "Losses") !== FALSE)
-                        {
-                            $data = trim($div->find("span", 0)->plaintext);
-                            if($data && is_numeric($data) && $data > 0 && $Summoner->LOST != $data)
-                            {
-                                $changed = true;
-                                $Summoner->LOST = $data;
-                            }
-                        }
-                    }
-                }
-                
-                $html->clear();
-                
-                // Save
-                if($changed)
-                {
-                    Summoner::save($Summoner, $this->Init->Datamanager);
-                    $this->ClearCache();
-                    $n++;
-                }
-            }
-            */
-            print "WETF";
-        }
-        
-        print_cli_line(sprintf("Finished updating, modified %d summoners in %f s", $n, microtime(true) - $start_time));
-        if($n > 0)
-        {
-            $this->Init->Cache->Set("updated", time(), 0);
-            $this->Init->Cache->Set("updatelog", sprintf("Updated %d summoners using %s.", $n, $APITYPE), 0);
-            $this->ClearCache();
-            return array("result" => sprintf("Updated %d summoners.", $n, $APITYPE));
-        }
-        else
-        {
-            $this->Init->Cache->Set("updatelog", strlen($problem) > 0 ? $problem : "Nothing to update", 0);
-            return array("result" => strlen($problem) > 0 ? $problem : "Nothing to update");
-        }
-    }
-    
-    private function ChampionName($id, $api)
-    {
-        $cached = unserialize($this->Init->Cache->Get("lol_ChampionName"));
-        if(!$cached)
-        {
-            $ret = $api->getChampions();
-            $cached = array();
-            foreach($ret->data as $champ)
+            if (isset($nchamps[$cName]))
             {
-                $cached[$champ->id] = $champ->name;
+                $f = file_get_contents($dir . '\\' . $v);
+                file_put_contents($dir2 . "\\" . $nchamps[$cName] . ".png", $f);
             }
-            $this->Init->Cache->Set("lol_ChampionName", serialize($cached), 86400);
+            else
+            {
+                print sprintf("Didn't copy: %s<br>", $v);
+            }
         }
-        return isset($cached[$id]) ? $cached[$id] : "-";
-    }
-    
-    private function findStat($stats, $key) 
-    {
-        foreach($stats as $stat)
-        {
-            if($stat->statType == $key)
-                return $stat->value;
-        }
-        return 0;
-    }
-    
-    public function SetBootstrap($Init)
-    {
-        $this->Init = $Init;
+        //var_dump($nchamps);
+        //var_dump($champs);
     }
     
     public function Logout()
@@ -559,206 +374,3 @@ class TheApi extends API
         return array("result" => "Success", "summoner" => $theSummoner);
     }
 }
-
-class UpdateManager
-{
-    const FILE_NAME = 'update_state';
-    const LOG_FILE = 'update_log';
-    const STATE_FILE = 'update_status';
-    
-    private $offline = 0;
-    private $updated = 0;
-    private $no_sid = 0;
-    private $no_updates = 0;
-    
-    public function __construct($Datamanager, $Cache, $Smarty, $argv)
-    {
-        $start = ($argv[1] == 'START');
-        $work = ($argv[1] == 'WORK');
-        $end = ($argv[1] == 'END');
-        
-        if($start)
-        {
-            $Summoners = Summoner::objects($Datamanager)->all()->orderby(array("AID"))->get();
-            $file = null;
-            
-            $file = fopen(self::FILE_NAME, 'w+');
-            if ($file)
-            {
-                $str = QueryObject::smart_implode($Summoners, $glue="\r\n", $callback=function ($k, $v, $last, $db, &$glue) {
-                    return $v->AID;
-                });
-                fwrite($file, $str);
-                fclose($file);
-                $this->loginfo(sprintf("Starting %d workers for %d summoners.", ceil(sizeof($Summoners)/10), sizeof($Summoners)));
-            }
-            else
-            {
-                $this->loginfo(sprintf("Problem opening file %s.", self::FILE_NAME));
-            }
-            sleep(1);
-            file_put_contents(self::STATE_FILE, "0");
-        }
-        else if($work)
-        {
-            // This is a worker. Lets do work!
-            $Summoners = $this->get_state();
-            if ($Summoners)
-            {
-                $count = sizeof($Summoners);
-            
-                $api = new Elophant(array("apiKey" => "", "lolServer" => "euw"));
-                foreach($Summoners as $k => $v)
-                {
-                    $changed = false;
-                    $Summoner = Summoner::objects($Datamanager)->filter(array("AID" => $v))->get(1);
-                    
-                    if($Summoner->SID == 0)
-                    {
-                        $this->no_sid++;
-                        continue;
-                    }
-                    
-                    try
-                    {
-                        TheApi::GetAPI($api, $Summoner->Region);
-                        
-                        $changed = $Summoner->Update($api);
-                        if($changed)
-                        {
-                            $this->updated++;
-                            Summoner::save($Summoner, $Datamanager);
-                        }
-                        else
-                        {
-                            $this->no_updates++;
-                        }
-                    }
-                    catch(Exception $e)
-                    {
-                        $this->offline++;
-                        continue;
-                    }
-                }
-                $this->loginfo(sprintf("Worker %s: Got %d, Updated %d, No SID %d, Not Changed %d, Offline %d.", $argv[2], $count, $this->updated, $this->no_sid, $this->no_updates, $this->offline));
-            }
-            $this->state_update();
-        }
-        else if($end)
-        {
-            $count = intval(trim($argv[2]));
-            do
-            {
-                $st = file_get_contents(self::STATE_FILE);
-                print "Still working...\r\n";
-                
-                sleep(1);
-            } while($st != $count);
-            
-            $Cache->Set("updated", time(), 0);
-            $Cache->Set("updatelog", sprintf("Updated summoners using %d workers.", $count), 0);
-            $Smarty->clearAllCache();
-            
-            print "Complete\r\n";
-            $this->loginfo("Complete...");
-            $this->loginfo("--------------");
-            $this->loginfo("--------------");
-        }
-    }
-
-    function loginfo($msg)
-    {
-        $this->log_msg("INFO", $msg);
-    }
-    function logerror($msg)
-    {
-        $this->log_msg("ERROR", $msg);
-    }
-
-    private function log_msg($type, $msg)
-    {
-        // Waits until file is free to write into...
-        if (!file_exists(self::LOG_FILE))
-        {
-            file_put_contents(self::LOG_FILE, "\r\n");
-        }
-        $file = fopen(self::LOG_FILE, 'a+');
-        if ($file)
-        {
-            $block = true;
-            if (flock($file, LOCK_EX, $block))
-            {
-                fwrite($file, sprintf("[%s] %s: %s\r\n", @date("c"), $type, $msg));
-            }
-            fclose($file);
-        }
-    }
-    private function state_update()
-    {
-        // Waits until file is free to write into...
-        if (!file_exists(self::STATE_FILE))
-        {
-            file_put_contents(self::STATE_FILE, "0");
-        }
-        $file = fopen(self::STATE_FILE, 'r+');
-        if ($file)
-        {
-            $block = true;
-            if (flock($file, LOCK_EX, $block))
-            {
-                $cc = intval(trim(fgets($file, 4096)))+1;
-                fseek($file, 0);
-                fwrite($file, $cc);
-            }
-            fclose($file);
-        }
-    }
-    
-    private function get_state()
-    {
-        if (file_exists(self::FILE_NAME))
-        {
-            $file = fopen(self::FILE_NAME, 'rw+');
-            if ($file)
-            {
-                // Lock the file and get the first 11 items.
-                $block = true;
-                if (flock($file, LOCK_EX, $block))
-                {
-                    $lines = array();
-                    $keep = array();
-                    
-                    $i = 0;
-                    while (!feof($file) && $i < 10) {
-                        $val = intval(trim(fgets($file, 4096)));
-                        if ($val != 0)
-                        {
-                            $lines[] = $val; 
-                        }
-                        $i++;
-                    }
-                    while(!feof($file))
-                    {
-                        $keep[] = trim(fgets($file, 4096)); 
-                    }
-                    
-                    fseek($file, 0);
-                    ftruncate($file, 0);
-                    fwrite($file, implode("\r\n", $keep));
-                    fclose($file);
-                    return $lines;
-                }
-                else
-                {
-                    $this->loginfo(sprintf("Problem acquiring lock on work que file %s.", self::FILE_NAME));
-                }
-            }
-            else
-            {
-                $this->loginfo(sprintf("Problem opening work que file %s.", self::FILE_NAME));
-            }
-        }
-        return null;
-    }
-}
-

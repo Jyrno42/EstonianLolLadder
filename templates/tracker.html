@@ -1,0 +1,66 @@
+{extends file="index.tpl"} 
+
+{block name="content"}
+    <style type="text/css">
+        body {
+            background-color: #f5f5f5;
+            padding-top: 40px;
+            padding-bottom: 40px;
+        }
+        .form-signin {
+            max-width: 600px;
+            padding: 19px 29px 29px;
+            margin: 0 auto 20px;
+            background-color: #fff;
+            border: 1px solid #e5e5e5;
+            -webkit-border-radius: 5px;
+            -moz-border-radius: 5px;
+            border-radius: 5px;
+            -webkit-box-shadow: 0 1px 2px rgba(0,0,0,.05);
+            -moz-box-shadow: 0 1px 2px rgba(0,0,0,.05);
+            box-shadow: 0 1px 2px rgba(0,0,0,.05);
+        }
+        .accordion {
+            max-width: 800px;
+            margin: 0 auto 20px;
+        }
+        .accordion-group {
+            background: #fff;
+            -webkit-box-shadow: 0 1px 2px rgba(0,0,0,.05);
+            -moz-box-shadow: 0 1px 2px rgba(0,0,0,.05);
+            box-shadow: 0 1px 2px rgba(0,0,0,.05);
+        }
+    </style>
+
+        {foreach from=$Games item=Game name=foo}
+            {if $smarty.foreach.foo.first}
+                <div class="accordion" id="accordion">
+            {/if}
+            <div class="accordion-group">
+                <div class="accordion-heading">
+                    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapse{$smarty.foreach.foo.iteration}">
+                        Game #{$Game->ID} @ {$Game->GameDate|date_format:"%H:%M %d.%m.%Y"}
+                        {if $Game->UnknownData}
+                            <span class="label label-warning pull-right">Some data could not be found.</span>
+                        {/if}
+                    </a>
+                </div>
+                <div id="collapse{$smarty.foreach.foo.iteration}" class="accordion-body collapse">
+                    <div class="accordion-inner">
+                        {include file="endgame.html"}
+                    </div>
+                </div>
+            </div>
+            
+            {if $smarty.foreach.foo.last}
+                </div>
+            {/if}
+        {foreachelse}
+            <div class="form-signin">
+                <h2>No Games Tracked</h2>
+                <p>You have no games stored in our history, please wait for the next update cycle to get new games(runs once every 20 minutes).</p>
+            </div>
+        {/foreach}
+    </div>
+
+{/block}
