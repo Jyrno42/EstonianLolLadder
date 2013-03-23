@@ -145,6 +145,10 @@ class Models
         }
     }
     
+    public function pre_save()
+    {
+        // Do nothing.
+    }
     public function post_load()
     {
         // Do nothing.
