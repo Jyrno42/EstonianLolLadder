@@ -41,15 +41,20 @@ class UpdateManager
         }
         else if($work)
         {
+            print "IS_WORKER\r\n";
+            
             // This is a worker. Lets do work!
             $Summoners = $this->get_state();
             if ($Summoners)
             {
                 $count = sizeof($Summoners);
+                
+                print "Got $count work \r\n";
             
                 $api = new Elophant(array("apiKey" => "", "lolServer" => "euw"));
                 foreach($Summoners as $k => $v)
                 {
+                    print "i++\r\n";
                     $changed = false;
                     $Summoner = Summoner::objects($Datamanager)->filter(array("AID" => $v))->get(1);
                     
