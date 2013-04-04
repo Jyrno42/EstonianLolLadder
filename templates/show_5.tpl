@@ -1,6 +1,6 @@
-{extends file="index.tpl"}
+{extends file="show.html"}
 
-{block name="content"}
+{block name="show"}
 
     <table class="table" style="width: 232px; margin-bottom: 0px;">
         <thead>
@@ -44,7 +44,7 @@
             <tr>
                 <th colspan="4">
                     <small>
-                        {nocache}<a href="#" title="{$UpdateLog|default:""}" class="pull-right my-tooltip">Viimane uuendus {relative_time($Update)}</a>{/nocache}
+                        {nocache}<a class="pull-left my-tooltip update-log" href="#reportModal" role="button" data-toggle="modal">Viimane uuendus {relative_time($Update)}</a>{/nocache}
                     </small>
                 </th>
             </tr>

@@ -1,5 +1,5 @@
-﻿{extends file="index.tpl"}
-{block name="content"}
+﻿{extends file="show.html"}
+{block name="show"}
 
 {strip}
 <div class="container-fluid">
@@ -68,7 +68,7 @@
     <div class="title span12 clearfix">
     
         <small>
-            {nocache}<a href="#" title="{$UpdateLog|default:""}" class="pull-left my-tooltip">Viimane uuendus {relative_time($Update)}</a>{/nocache}
+            {nocache}<a class="pull-left my-tooltip update-log" href="#reportModal" role="button" data-toggle="modal">Viimane uuendus {relative_time($Update)}</a>{/nocache}
             {nocache}<span class="pull-right">v{constant("VERSION")}</span>{/nocache}
         </small>
     </div>

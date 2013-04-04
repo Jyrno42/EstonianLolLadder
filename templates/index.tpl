@@ -59,32 +59,41 @@
         <script src="{$MEDIA_URL}/bootstrap/js/bootstrap.js"></script>
         <script src="{$MEDIA_URL}/spin.min.js"></script>
         <script type="text/javascript" src="{$MEDIA_URL}/jquery.tablesorter.js"></script> 
+        
+        <!--[if lt IE 9]><script language="javascript" type="text/javascript" src="{$MEDIA_URL}/plot/excanvas.js"></script><![endif]-->
+        <script language="javascript" type="text/javascript" src="{$MEDIA_URL}/plot/jquery.jqplot.min.js"></script>
+        <script type="text/javascript" src="{$MEDIA_URL}/plot/plugins/jqplot.donutRenderer.min.js"></script> 
+        <link rel="stylesheet" type="text/css" href="{$MEDIA_URL}/plot/jquery.jqplot.css" />
+    
         <script type="text/javascript">
             {literal}
-            $(document).ready(function() { 
-                $("#myTable").tablesorter({
-                    sortList: [[0,0]],
-                    textExtraction: function(node) { 
-                        if ($(node).data("rval")) {
-                            return $(node).data("rval");
-                        }
-                        return $(node).text();
-                    },
-                    headers: {
-                        1: { 
-                            sorter: false 
+            $(document).ready(function() {
+                if ($("#myTable tr").length > 1)
+                {
+                    $("#myTable").tablesorter({
+                        sortList: [[0,0]],
+                        textExtraction: function(node) { 
+                            if ($(node).data("rval")) {
+                                return $(node).data("rval");
+                            }
+                            return $(node).text();
                         },
-                        2: { 
-                            sorter: false 
+                        headers: {
+                            1: { 
+                                sorter: false 
+                            },
+                            2: { 
+                                sorter: false 
+                            }
                         }
-                    }
-                }).bind("sortEnd", function () {
-                    var idx = 1;
-                    $("#myTable tbody tr td:first-child").each(function () {
-                        $(this).text(idx);
-                        idx = idx + 1;
-                    });
-                }); 
+                    }).bind("sortEnd", function () {
+                        var idx = 1;
+                        $("#myTable tbody tr td:first-child").each(function () {
+                            $(this).text(idx);
+                            idx = idx + 1;
+                        });
+                    }); 
+                }
                 $(".maskpost").maskPost({"errorLabel": "", "selector": "#error"});
                 $(".my-tooltip").tooltip();
             });

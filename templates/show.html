@@ -1,0 +1,153 @@
+{extends file="index.tpl"}
+
+{block name="content"}
+    {block name="show"}
+    {/block}
+    
+    <div id="reportModal" class="modal hide" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h3 id="myModalLabel">Uuenduse Logi</h3> 
+            <div class="label pull-right label-{if !$Report->result}important{else}success{/if}">{if !$Report->result}Probleem{else}OK{/if}</div>
+            <p>
+                Viimane uuendus {relative_time($Update)}<br>
+                <b>Töö Aeg: </b>{$Report->calcTimers->total} s
+            </p>
+        </div>
+        {if $Report}
+            <div class="modal-body">
+                {if $Report->result}
+                    <div class="row-fluid">
+                        <div class="span4">
+                            <div class="alert alert-block alert-success">
+                                <b>Success:</b> {$Report->total - $Report->failed}
+                            </div>
+                        </div>
+                        <div class="span4">
+                            <div class="alert alert-block alert-error">
+                                <b>Failed:</b> {$Report->failed}
+                            </div>
+                        </div>
+                        <div class="span4">
+                            <div class="alert alert-block alert-info">
+                                <b>Total:</b> {$Report->total}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row-fluid">
+                        
+                        <h5>Loogika Aeg</h5>
+                        <div id="totaltime" style="width:513px;"></div>
+                        
+                        <h5>Regiooni Breakdown</h5>
+                        <div id="summoners" style="width:513px;"></div>
+                        
+                        <h5>Threadid</h5>
+                        {foreach from=$Report->threads key=Region item=Thread name=foo}
+                            <h6>{$Region|strtoupper}</h6>
+                            <div id="region{$Region}" style="width:513px;"></div>
+                        {/foreach}
+                    </div>
+                    <script type="text/javascript">
+                            // TODO: LAbels
+                            $(document).ready(function() {
+                                var time_data = [
+                                    ['Chunk', {($Report->calcTimers->chunk * 1000)|number_format:2}],
+                                    ['Init', {($Report->calcTimers->init * 1000)|number_format:2}],
+                                    ['Sql Commit', {($Report->calcTimers->sql_commit * 1000)|number_format:2}],
+                                    ['Sql Update', {($Report->calcTimers->sql_update * 1000)|number_format:2}],
+                                ];
+                                var summoners_data = [
+                                    ['EUW', {$Report->threads->euw->summoners}],
+                                    ['EUNE', {$Report->threads->eune->summoners}],
+                                ];
+                                {foreach from=$Report->threads key=Region item=Thread name=foo}
+                                    var region_{$Region}_data_1 = [
+                                        ['{($Thread->started_threads)|number_format:0}<br>Started Threads', {$Thread->started_threads}],
+                                        ['{($Thread->finished_threads)|number_format:0}<br>Finished Threads', {$Thread->finished_threads}],
+                                    ];
+                                    var region_{$Region}_data_2 = [
+                                        ['{($Thread->pTime * 1000)|number_format:0} ms<br>Time', {$Thread->pTime * 1000}],
+                                    ];
+                                {/foreach}
+                                
+                                var totaltime = $.jqplot('totaltime', [time_data], {
+                                    seriesDefaults: {
+                                        renderer:$.jqplot.DonutRenderer,
+                                        rendererOptions:{
+                                            sliceMargin: 3,
+                                            startAngle: -90,
+                                            showDataLabels: true,
+                                            dataLabels: [
+                                                '{($Report->calcTimers->chunk * 1000)|number_format:2} ms',
+                                                '{($Report->calcTimers->init * 1000)|number_format:2} ms',
+                                                '{($Report->calcTimers->sql_commit * 1000)|number_format:2} ms',
+                                                '{($Report->calcTimers->sql_update * 1000)|number_format:2} ms',
+                                            ],
+                                        }
+                                    },
+                                    legend: { show:true, location: 'e' }
+                                });
+                                
+                                var summoners = $.jqplot('summoners', [summoners_data], {
+                                    seriesDefaults: {
+                                        renderer:$.jqplot.DonutRenderer,
+                                        rendererOptions:{
+                                            sliceMargin: 3,
+                                            startAngle: -90,
+                                            showDataLabels: true,
+                                            dataLabels: [
+                                                '{$Report->threads->euw->summoners} summoners',
+                                                '{$Report->threads->eune->summoners} summoners',
+                                            ]
+                                        }
+                                    },
+                                    legend: { show:true, location: 'e' }
+                                });
+                                
+                                {foreach from=$Report->threads key=Region item=Thread name=foo}
+                                    var plot_{$Region} = $.jqplot('region{$Region}', [region_{$Region}_data_1, region_{$Region}_data_2], {
+                                    seriesDefaults: {
+                                        renderer:$.jqplot.DonutRenderer,
+                                        rendererOptions:{
+                                            sliceMargin: 3,
+                                            startAngle: -90,
+                                            showDataLabels: true,
+                                            dataLabels: 'label',
+                                        }
+                                    },
+                                    legend: { show:true, location: 'e' }
+                                });
+                                {/foreach}
+                                
+                                $("#reportModal").on("hidden", function () {
+                                    $("body").css("overflow", "inherit");
+                                });
+                                $("#reportModal").on("shown", function () {
+                                    $("body").css("overflow", "hidden");
+                                    totaltime.replot();
+                                    summoners.replot();
+                                    {foreach from=$Report->threads key=Region item=Thread name=foo}
+                                        plot_{$Region}.replot();
+                                    {/foreach}
+                                });
+                            });
+                    </script>
+                {else}
+                    <div class="item">
+                        <div class="stream-icon stream-danger"><i class="icon-off icon-white"></i></div>
+                        <h4>Probleem</h4>
+                        <p>Midagi oli valesti.</p>
+                    </div>
+                {/if}
+                
+                <h5>Raw Output</h5>
+                <p>{$Report|var_dump}</p>
+            </div>
+        {/if}
+        <div class="modal-footer">
+            <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+        </div>
+    </div>
+{/block}

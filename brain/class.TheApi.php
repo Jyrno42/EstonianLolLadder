@@ -1,7 +1,63 @@
 <?php
 
 ini_set('default_charset', 'UTF-8');
+
+function GetReport()
+{
+    $ret = NULL;
+    $dir = getcwd();
+    chdir($dir . "/reports");
     
+    $files = scandir(".");
+
+    $files = array_filter($files, function ($v) {
+        return $v != "." && $v != "..";
+    });
+    
+    if (sizeof($files) > 0)
+    {
+        usort($files, function ($a, $b) {
+            return filemtime($b) - filemtime($a);
+        });
+        
+        $txt = file_get_contents($files[0]);
+        if ($txt)
+        {
+            $ret = json_decode($txt);
+            $ret->time = filemtime($files[0]);
+            
+            if (sizeof($ret->timers) > 0)
+            {
+                $ret->calcTimers = new stdClass;
+                foreach($ret->timers as $k => $v)
+                {
+                    $line = trim($v); // 131.210105s wall, 112.632722s user + 0.218401s system = 112.851123s CPU (86.0%)
+                    $mat = array();
+                    if (preg_match("/([\.0-9]+)s wall/", $line, $mat) === 1)
+                    {
+                        $ret->calcTimers->$k = floatval($mat[1]);
+                    }
+                }
+                foreach($ret->threads as $k => $v)
+                {
+                    $line = trim($v->time); // 131.210105s wall, 112.632722s user + 0.218401s system = 112.851123s CPU (86.0%)
+                    $mat = array();
+                    if (preg_match("/([\.0-9]+)s wall/", $line, $mat) === 1)
+                    {
+                        $ret->threads->$k->pTime = floatval($mat[1]);
+                    }
+                }
+                
+                $ret->calcTimers->threads = $ret->calcTimers->total - $ret->calcTimers->chunk - $ret->calcTimers->init - $ret->calcTimers->sql_commit - $ret->calcTimers->sql_update;
+                unset($ret->threads->na);
+            }
+        }
+    }
+    
+    chdir($dir);
+    return $ret;
+}
+
 class TheApi extends API
 {
     /**
@@ -203,17 +259,15 @@ class TheApi extends API
         {
             $Summoners = Summoner::objects($this->Init->Datamanager)->filter(array("Name" => QueryObject::NotEqual(null)))->orderby(array("Score"))->reverse()->get($showtop ? 5 : null);
         }
-        
-        $upd = $this->Init->Cache->Get("updated");
-        $updatelog = $this->Init->Cache->Get("updatelog");
+
+        // Get report
+        $report = GetReport();
+        $this->Init->Smarty->assign("Update", $report !== NULL ? $report->time : 0);
+        $this->Init->Smarty->assign("Report", $report);
         
         $this->Init->Smarty->assign("Label", $filter ? strtoupper($filter) : "EESTI");
         $this->Init->Smarty->assign("Summoners", $Summoners);
         $this->Init->Smarty->assign("Filter", $filter);
-        $upd = $this->Init->Cache->Get("updated");
-        $updatelog = $this->Init->Cache->Get("updatelog");
-        $this->Init->Smarty->assign("Update", $upd);
-        $this->Init->Smarty->assign("UpdateLog", $updatelog);
         $this->Init->Smarty->display($tplName);
     }
     
