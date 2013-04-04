@@ -11,7 +11,9 @@
             <div class="label pull-right label-{if !$Report->result}important{else}success{/if}">{if !$Report->result}Probleem{else}OK{/if}</div>
             <p>
                 Viimane uuendus {relative_time($Update)}<br>
-                <b>Töö Aeg: </b>{$Report->calcTimers->total} s
+                {if $Report}
+                    <b>Töö Aeg: </b>{$Report->calcTimers->total} s
+                {/if}
             </p>
         </div>
         {if $Report}
