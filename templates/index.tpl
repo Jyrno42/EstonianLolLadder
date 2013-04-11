@@ -1,22 +1,7 @@
 <!DOCTYPE HTML>
 <html>
-    <head>
-        <script type="text/javascript">
-          var _kmq = _kmq || [];
-          var _kmk = _kmk || 'c13911f9369abddc62387f3a8e89010b464ed9a5';
-          function _kms(u){
-            setTimeout(function(){
-              var d = document, f = d.getElementsByTagName('script')[0],
-              s = d.createElement('script');
-              s.type = 'text/javascript'; s.async = true; s.src = u;
-              f.parentNode.insertBefore(s, f);
-            }, 1);
-          }
-          _kms('//i.kissmetrics.com/i.js');
-          _kms('//doug1izaerwt3.cloudfront.net/' + _kmk + '.1.js');
-        </script>
-        
-        
+    <head>    
+
         <meta http-equiv="Content-Type" content="application/xhtml+xml;" />
         <meta charset="utf-8">
         
