@@ -1,6 +1,6 @@
 <!DOCTYPE HTML>
 <html>
-    <head>
+    <head>    
 
         <meta http-equiv="Content-Type" content="application/xhtml+xml;" />
         <meta charset="utf-8">
