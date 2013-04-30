@@ -434,7 +434,7 @@ class TheApi extends API
 	{
         $key = ApiHelper::GetParam("key", true);
 		
-		if(!$key != REPORT_PASSCODE)
+		if(strcmp($key, REPORT_PASSCODE) !== 0)
             throw new Exception("Wrong passcode!");
 			
 		$dir = getcwd();
