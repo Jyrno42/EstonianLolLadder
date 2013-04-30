@@ -88,6 +88,8 @@ class TheApi extends API
         $this->AddAction("names", array($this, "names"));
         
         $this->AddAction("migrate", array($this, "migrate"));
+		
+        $this->AddAction("Report", array($this, "Report"));
     }
     
     /**
@@ -427,4 +429,22 @@ class TheApi extends API
         
         return array("result" => "Success", "summoner" => $theSummoner);
     }
+	
+	public function Report()
+	{
+        $key = ApiHelper::GetParam("key", true);
+		
+		if(!$key != REPORT_PASSCODE)
+            throw new Exception("Wrong passcode!");
+			
+		$dir = getcwd();
+		chdir($dir . "/reports");
+		
+		$report = file_get_contents("php://input");
+		$fName = sprintf("report_%d.json", time());
+		file_put_contents($fName, $report);
+		
+		chdir($dir);
+        return array("result" => "Success", "file" => $fName);
+	}
 }
