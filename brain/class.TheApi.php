@@ -432,7 +432,6 @@ class TheApi extends API
 	
 	public function Report()
 	{
-		throw new Exception(json_encode($_GET));
         $key = ApiHelper::GetParam("key", true);
 		
 		if(!$key != REPORT_PASSCODE)
