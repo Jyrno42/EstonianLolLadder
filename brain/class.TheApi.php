@@ -430,21 +430,24 @@ class TheApi extends API
         return array("result" => "Success", "summoner" => $theSummoner);
     }
 	
-	public function Report()
-	{
+    public function Report()
+    {
         $key = ApiHelper::GetParam("key", true);
 		
-		if(strcmp($key, REPORT_PASSCODE) !== 0)
+        if(strcmp($key, REPORT_PASSCODE) !== 0)
             throw new Exception("Wrong passcode!");
 			
-		$dir = getcwd();
-		chdir($dir . "/reports");
+        $dir = getcwd();
+        chdir($dir . "/reports");
+
+        $report = file_get_contents("php://input");
+        if (!json_decode($report))
+            throw new Exception("Something went wrong.");
+        
+        $fName = sprintf("report_%d.json", time());
+        file_put_contents($fName, $report);
 		
-		$report = file_get_contents("php://input");
-		$fName = sprintf("report_%d.json", time());
-		file_put_contents($fName, $report);
-		
-		chdir($dir);
+        chdir($dir);
         return array("result" => "Success", "file" => $fName);
-	}
+    }
 }
