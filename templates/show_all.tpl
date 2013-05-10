@@ -69,7 +69,7 @@
     
         <small>
             {nocache}<a class="pull-left my-tooltip update-log" href="#reportModal" role="button" data-toggle="modal">Viimane uuendus {relative_time($Update)}</a>{/nocache}
-            {nocache}<span class="pull-right">v{constant("VERSION")} <a href="https://github.com/Jyrno42/LolUpdator"><img src="https://travis-ci.org/Jyrno42/LolUpdator.png" /></a></span>{/nocache}
+            {nocache}<span class="pull-right">v{constant("VERSION")} <a href="https://github.com/Jyrno42/LolUpdator"><img src="https://travis-ci.org/Jyrno42/LolUpdator.png" /></a><a href="http://mixpanel.com/f/partner"><img src="http://mixpanel.com/site_media/images/partner/badge_blue.png" alt="Mobile Analytics" /></a></span>{/nocache}
         </small>
     </div>
 </div>
